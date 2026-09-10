@@ -1,0 +1,139 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: codebase-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_secure_password}
+      POSTGRES_DB: ${POSTGRES_DB:-codebase_intelligence}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-codebase_intelligence}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codebase-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: codebase-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codebase-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: codebase-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - PROJECT_NAME=${PROJECT_NAME:-Codebase Intelligence Engine}
+      - VERSION=${VERSION:-0.1.0}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - DEBUG=${DEBUG:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - API_V1_STR=${API_V1_STR:-/api/v1}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS:-http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://localhost:80,http://10.246.0.65:5173,*}
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres_secure_password}
+      - POSTGRES_DB=${POSTGRES_DB:-codebase_intelligence}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_secure_password}@db:5432/${POSTGRES_DB:-codebase_intelligence}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379/0
+      - ANALYSIS_STORAGE_PATH=/tmp/cie_repos
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 6
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    networks:
+      - codebase-network
+
+  worker:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    container_name: codebase-worker
+    restart: unless-stopped
+    command: ["celery", "-A", "app.workers.celery_app.celery_app", "worker", "--loglevel=info", "-Q", "ingestion"]
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    environment:
+      - PROJECT_NAME=${PROJECT_NAME:-Codebase Intelligence Engine}
+      - VERSION=${VERSION:-0.1.0}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres_secure_password}
+      - POSTGRES_DB=${POSTGRES_DB:-codebase_intelligence}
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_secure_password}@db:5432/${POSTGRES_DB:-codebase_intelligence}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379/0
+      - ANALYSIS_STORAGE_PATH=/tmp/cie_repos
+    volumes:
+      - ./backend:/app
+    networks:
+      - codebase-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    container_name: codebase-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      - VITE_PROXY_TARGET=http://backend:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - codebase-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  codebase-network:
+    driver: bridge

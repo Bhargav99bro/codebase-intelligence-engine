@@ -1,0 +1,50 @@
+[project]
+name = "codebase-intelligence-backend"
+version = "0.1.0"
+description = "FastAPI backend for Codebase Intelligence Engine"
+authors = [{ name = "Architect Team" }]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.10.0",
+    "pydantic-settings>=2.6.0",
+    "sqlalchemy>=2.0.36",
+    "asyncpg>=0.30.0",
+    "psycopg2-binary>=2.9.10",
+    "redis>=5.2.0",
+    "celery>=5.4.0",
+    "httpx>=0.28.0",
+    "python-multipart>=0.0.18",
+    "gitpython>=3.1.43",
+    "alembic>=1.14.0",
+    "tree-sitter>=0.22.0",
+    "tree-sitter-python>=0.23.0",
+    "tree-sitter-javascript>=0.23.0",
+    "tree-sitter-typescript>=0.23.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "aiosqlite>=0.20.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

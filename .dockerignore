@@ -1,0 +1,12 @@
+node_modules
+frontend/node_modules
+frontend/dist
+.venv
+backend/.venv
+__pycache__
+*.pyc
+.git
+.pytest_cache
+scratch
+postgres_data
+redis_data
