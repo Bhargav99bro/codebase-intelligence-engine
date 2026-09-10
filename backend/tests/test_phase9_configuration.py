@@ -91,3 +91,32 @@ def test_resource_governance_settings():
     assert s.MAX_CANDIDATE_BUCKET_SIZE <= 500
     assert s.STALE_JOB_THRESHOLD_MINUTES >= 5
     assert s.MAX_PAGE_SIZE <= 500
+
+
+def test_redis_ssl_url_normalization_maintains_required_verification():
+    import ssl
+    from redis.connection import parse_url, SSLConnection
+    from app.core.redis import normalize_redis_ssl_url
+
+    # Uppercase CERT_REQUIRED must be converted to lowercase required
+    raw_url = "rediss://default:supersecret@valkey.aivencloud.com:12345/0?ssl_cert_reqs=CERT_REQUIRED"
+    s = Settings(REDIS_URL=raw_url)
+    assert s.REDIS_URL == "rediss://default:supersecret@valkey.aivencloud.com:12345/0?ssl_cert_reqs=required"
+
+    # Helper function normalization
+    norm_url = normalize_redis_ssl_url(raw_url)
+    assert norm_url == "rediss://default:supersecret@valkey.aivencloud.com:12345/0?ssl_cert_reqs=required"
+
+    # Verify redis-py parse_url and SSLConnection accepts it without error
+    parsed = parse_url(norm_url)
+    assert parsed["ssl_cert_reqs"] == "required"
+    conn = SSLConnection(host="valkey.aivencloud.com", port=12345, ssl_cert_reqs=parsed["ssl_cert_reqs"])
+    assert conn.cert_reqs == ssl.CERT_REQUIRED
+
+
+def test_database_url_cloud_normalization():
+    # postgres:// to postgresql+asyncpg:// and sslmode= to ssl=
+    raw_pg_url = "postgres://avnadmin:secret@pg.aivencloud.com:12345/defaultdb?sslmode=require"
+    s = Settings(DATABASE_URL=raw_pg_url)
+    assert s.DATABASE_URL == "postgresql+asyncpg://avnadmin:secret@pg.aivencloud.com:12345/defaultdb?ssl=require"
+

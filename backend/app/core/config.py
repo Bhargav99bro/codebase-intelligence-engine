@@ -61,6 +61,25 @@ class Settings(BaseSettings):
     REDIS_DB: int = 0
     REDIS_URL: str = "redis://localhost:6379/0"
 
+    @field_validator("REDIS_URL", mode="before")
+    @classmethod
+    def assemble_redis_url(cls, v: str) -> str:
+        if isinstance(v, str):
+            import re
+
+            def _normalize_cert_reqs(match):
+                val = match.group(1).lower()
+                if "required" in val:
+                    return "ssl_cert_reqs=required"
+                elif "optional" in val:
+                    return "ssl_cert_reqs=optional"
+                elif "none" in val:
+                    return "ssl_cert_reqs=none"
+                return match.group(0)
+
+            v = re.sub(r"ssl_cert_reqs=([a-zA-Z_]+)", _normalize_cert_reqs, v, flags=re.IGNORECASE)
+        return v
+
     # Repository analysis limits & storage
     ANALYSIS_STORAGE_PATH: str = "./scratch/repos"
     MAX_REPO_SIZE_MB: int = 500
