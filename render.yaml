@@ -1,11 +1,11 @@
-﻿services:
-  # 1. FastAPI ASGI Backend
+services:
+  # Unified FastAPI Backend + Celery Worker (Card-Free Free Tier Web Service)
   - type: web
     name: cie-backend
     runtime: docker
     dockerfilePath: docker/backend.prod.Dockerfile
     dockerContext: .
-    plan: starter
+    plan: free
     healthCheckPath: /api/v1/ready
     envVars:
       - key: PROJECT_NAME
@@ -23,88 +23,15 @@
       - key: SECRET_KEY
         generateValue: true
       - key: DATABASE_URL
-        fromDatabase:
-          name: cie-db
-          property: connectionString
+        sync: false
       - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: cie-redis
-          property: connectionString
+        sync: false
+      - key: BACKEND_CORS_ORIGINS
+        sync: false
       - key: ANALYSIS_STORAGE_PATH
         value: /tmp/cie_repos
       - key: RATE_LIMIT_ENABLED
         value: true
       - key: MAX_CONCURRENT_ANALYSES
         value: 5
-      - key: BACKEND_CORS_ORIGINS
-        value: "*"
 
-  # 2. Celery Asynchronous Worker
-  - type: worker
-    name: cie-worker
-    runtime: docker
-    dockerfilePath: docker/backend.prod.Dockerfile
-    dockerContext: .
-    plan: starter
-    dockerCommand: celery -A app.workers.celery_app.celery_app worker --loglevel=info -Q ingestion --concurrency=4
-    envVars:
-      - key: PROJECT_NAME
-        value: Codebase Intelligence Engine
-      - key: VERSION
-        value: 1.0.0
-      - key: ENVIRONMENT
-        value: production
-      - key: DEBUG
-        value: false
-      - key: LOG_FORMAT
-        value: json
-      - key: LOG_LEVEL
-        value: INFO
-      - key: SECRET_KEY
-        fromService:
-          type: web
-          name: cie-backend
-          envVarKey: SECRET_KEY
-      - key: DATABASE_URL
-        fromDatabase:
-          name: cie-db
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          type: keyvalue
-          name: cie-redis
-          property: connectionString
-      - key: ANALYSIS_STORAGE_PATH
-        value: /tmp/cie_repos
-
-  # 3. Render Key Value (Redis)
-  - type: keyvalue
-    name: cie-redis
-    plan: free
-    ipAllowList: []
-
-  # 4. React Production Frontend (Static Site)
-  - type: web
-    name: cie-frontend
-    runtime: static
-    rootDir: frontend
-    buildCommand: npm ci && npm run build
-    staticPublishPath: dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
-    envVars:
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: cie-backend
-          property: host
-
-databases:
-  - name: cie-db
-    databaseName: codebase_intelligence
-    user: cie_admin
-    plan: free
-    postgresMajorVersion: "16"

@@ -22,6 +22,8 @@ RUN uv pip install --system --no-cache -e .
 COPY backend/app ./app
 COPY backend/alembic ./alembic
 COPY backend/alembic.ini ./alembic.ini
+COPY docker/entrypoint.prod.sh ./entrypoint.prod.sh
+RUN chmod +x ./entrypoint.prod.sh && chown appuser:appuser ./entrypoint.prod.sh
 
 USER appuser
 
@@ -30,4 +32,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
     CMD curl -f http://localhost:8000/api/v1/ready || exit 1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--proxy-headers", "--forwarded-allow-ips", "*"]
+ENTRYPOINT ["/app/entrypoint.prod.sh"]

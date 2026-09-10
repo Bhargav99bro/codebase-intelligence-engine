@@ -42,6 +42,18 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = "codebase_intelligence"
     DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres_secure_password@localhost:5432/codebase_intelligence"
 
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_database_url(cls, v: str) -> str:
+        if isinstance(v, str):
+            if v.startswith("postgres://"):
+                v = "postgresql+asyncpg://" + v[len("postgres://"):]
+            elif v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
+                v = "postgresql+asyncpg://" + v[len("postgresql://"):]
+            if "sslmode=" in v:
+                v = v.replace("sslmode=", "ssl=")
+        return v
+
     # Redis
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
