@@ -27,7 +27,7 @@ services:
       - key: REDIS_URL
         sync: false
       - key: BACKEND_CORS_ORIGINS
-        sync: false
+        value: https://frontend-mauve-omega-jwwyldr41f.vercel.app
       - key: ANALYSIS_STORAGE_PATH
         value: /tmp/cie_repos
       - key: RATE_LIMIT_ENABLED
