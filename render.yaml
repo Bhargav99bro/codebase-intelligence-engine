@@ -27,7 +27,10 @@
           name: cie-db
           property: connectionString
       - key: REDIS_URL
-        value: redis://cie-redis:6379/0
+        fromService:
+          type: keyvalue
+          name: cie-redis
+          property: connectionString
       - key: ANALYSIS_STORAGE_PATH
         value: /tmp/cie_repos
       - key: RATE_LIMIT_ENABLED
@@ -68,24 +71,26 @@
           name: cie-db
           property: connectionString
       - key: REDIS_URL
-        value: redis://cie-redis:6379/0
+        fromService:
+          type: keyvalue
+          name: cie-redis
+          property: connectionString
       - key: ANALYSIS_STORAGE_PATH
         value: /tmp/cie_repos
 
-  # 3. Redis Private Service
-  - type: pserv
+  # 3. Render Key Value (Redis)
+  - type: keyvalue
     name: cie-redis
-    runtime: image
-    image:
-      url: redis:7-alpine
-    plan: starter
+    plan: free
+    ipAllowList: []
 
-  # 4. React Production Frontend
-  - type: static_site
+  # 4. React Production Frontend (Static Site)
+  - type: web
     name: cie-frontend
+    runtime: static
     rootDir: frontend
-    buildCommand: npm install && npm run build
-    publishDir: dist
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*
@@ -102,3 +107,4 @@ databases:
     databaseName: codebase_intelligence
     user: cie_admin
     plan: free
+    postgresMajorVersion: "16"
