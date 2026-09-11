@@ -27,9 +27,9 @@ RUN chmod +x ./entrypoint.prod.sh && chown appuser:appuser ./entrypoint.prod.sh
 
 USER appuser
 
-EXPOSE 8000
+EXPOSE 10000
 
 HEALTHCHECK --interval=10s --timeout=5s --retries=3 \
-    CMD curl -f http://localhost:8000/api/v1/ready || exit 1
+    CMD curl -f "http://localhost:${PORT:-10000}/api/v1/ready" || exit 1
 
 ENTRYPOINT ["/app/entrypoint.prod.sh"]

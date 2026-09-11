@@ -120,3 +120,36 @@ def test_database_url_cloud_normalization():
     s = Settings(DATABASE_URL=raw_pg_url)
     assert s.DATABASE_URL == "postgresql+asyncpg://avnadmin:secret@pg.aivencloud.com:12345/defaultdb?ssl=require"
 
+
+def test_production_dockerfile_port_and_expose():
+    from pathlib import Path
+    dockerfile = Path(__file__).resolve().parent.parent.parent / "docker" / "backend.prod.Dockerfile"
+    assert dockerfile.exists(), f"Dockerfile not found at {dockerfile}"
+    content = dockerfile.read_text(encoding="utf-8")
+    assert "EXPOSE 10000" in content, "Dockerfile must expose port 10000 for Render port scan"
+    assert "10000" in content, "Dockerfile must reference port 10000"
+    assert "curl -f" in content, "Dockerfile must define healthcheck curl probe"
+
+
+def test_production_entrypoint_port_and_supervision():
+    from pathlib import Path
+    entrypoint = Path(__file__).resolve().parent.parent.parent / "docker" / "entrypoint.prod.sh"
+    assert entrypoint.exists(), f"Entrypoint not found at {entrypoint}"
+    content = entrypoint.read_text(encoding="utf-8")
+    assert "PORT_NUM=${PORT:-10000}" in content, "Entrypoint must default PORT_NUM to 10000"
+    assert "--host 0.0.0.0" in content, "Uvicorn must bind to 0.0.0.0"
+    assert "--port \"${PORT_NUM}\"" in content, "Uvicorn must bind to ${PORT_NUM}"
+    assert "wait \"$UVICORN_PID\"" in content, "Entrypoint must supervise Uvicorn as primary process"
+    assert "FORWARDED_ALLOW_IPS" in content, "Entrypoint must use env var for trusted proxies"
+    assert '--forwarded-allow-ips "*"' not in content, "Wildcard asterisk must not be unquoted or globbed"
+
+
+def test_render_yaml_port_declaration():
+    from pathlib import Path
+    render_yaml = Path(__file__).resolve().parent.parent.parent / "render.yaml"
+    assert render_yaml.exists(), f"render.yaml not found at {render_yaml}"
+    content = render_yaml.read_text(encoding="utf-8")
+    assert "key: PORT" in content, "render.yaml must declare PORT env var"
+    assert "value: 10000" in content, "render.yaml PORT must be set to 10000"
+
+

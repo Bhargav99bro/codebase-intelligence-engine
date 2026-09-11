@@ -8,6 +8,8 @@ services:
     plan: free
     healthCheckPath: /api/v1/ready
     envVars:
+      - key: PORT
+        value: 10000
       - key: PROJECT_NAME
         value: Codebase Intelligence Engine
       - key: VERSION
