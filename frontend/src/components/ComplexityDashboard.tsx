@@ -46,10 +46,10 @@ export const ComplexityDashboard: React.FC<ComplexityDashboardProps> = ({ analys
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-12 bg-slate-900/60 rounded-xl border border-slate-800">
-        <div className="flex items-center space-x-3 text-cyan-400">
-          <Activity className="w-6 h-6 animate-spin" />
-          <span className="text-sm font-medium">Loading code complexity & maintainability metrics...</span>
+      <div className="flex items-center justify-center p-12 bg-white rounded-lg border border-slate-200">
+        <div className="flex items-center space-x-3 text-indigo-600">
+          <Activity className="w-5 h-5 animate-spin" />
+          <span className="text-xs font-medium text-slate-700">Loading code complexity & maintainability metrics...</span>
         </div>
       </div>
     );
@@ -57,7 +57,7 @@ export const ComplexityDashboard: React.FC<ComplexityDashboardProps> = ({ analys
 
   if (error || !metrics) {
     return (
-      <div className="p-6 bg-slate-900/60 rounded-xl border border-slate-800 text-slate-400 text-sm">
+      <div className="p-6 bg-white rounded-lg border border-slate-200 text-slate-600 text-xs">
         {error || "No complexity metrics available for this repository."}
       </div>
     );
@@ -72,56 +72,56 @@ export const ComplexityDashboard: React.FC<ComplexityDashboardProps> = ({ analys
   const vhighPct = Math.round((complexity_distribution.very_high / totalFuncs) * 100);
 
   const getMaintainabilityColor = (score: number) => {
-    if (score >= 70) return "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
-    if (score >= 50) return "text-amber-400 border-amber-500/30 bg-amber-500/10";
-    return "text-rose-400 border-rose-500/30 bg-rose-500/10";
+    if (score >= 70) return "text-emerald-700 border-emerald-200 bg-emerald-50";
+    if (score >= 50) return "text-amber-700 border-amber-200 bg-amber-50";
+    return "text-rose-700 border-rose-200 bg-rose-50";
   };
 
   return (
     <div className="space-y-6">
       {/* Overview Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-xl">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Source Lines (SLOC)</span>
-            <FileText className="w-4 h-4 text-cyan-400" />
+        <div className="bg-white border border-slate-200 p-4 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Source Lines (SLOC)</span>
+            <FileText className="w-4 h-4 text-slate-400" />
           </div>
-          <div className="text-2xl font-bold text-slate-100">{repository_totals.total_sloc.toLocaleString()}</div>
-          <div className="text-xs text-slate-400 mt-1">{repository_totals.total_files} discovered files</div>
+          <div className="text-2xl font-bold text-slate-900 font-mono">{repository_totals.total_sloc.toLocaleString()}</div>
+          <div className="text-xs text-slate-500 mt-1">{repository_totals.total_files} discovered files</div>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-xl">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Avg Complexity (CC)</span>
-            <Activity className="w-4 h-4 text-emerald-400" />
+        <div className="bg-white border border-slate-200 p-4 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Avg Complexity (CC)</span>
+            <Activity className="w-4 h-4 text-indigo-500" />
           </div>
-          <div className="text-2xl font-bold text-slate-100">{averages.average_cyclomatic_complexity.toFixed(1)}</div>
-          <div className="text-xs text-slate-400 mt-1">Max CC: <span className="text-amber-400 font-semibold">{maximums.max_cyclomatic_complexity}</span></div>
+          <div className="text-2xl font-bold text-slate-900 font-mono">{averages.average_cyclomatic_complexity.toFixed(1)}</div>
+          <div className="text-xs text-slate-500 mt-1">Max CC: <span className="text-amber-600 font-semibold font-mono">{maximums.max_cyclomatic_complexity}</span></div>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-xl">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Maintainability</span>
-            <ShieldAlert className="w-4 h-4 text-cyan-400" />
+        <div className="bg-white border border-slate-200 p-4 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Maintainability</span>
+            <ShieldAlert className="w-4 h-4 text-slate-400" />
           </div>
-          <div className="flex items-baseline space-x-2">
-            <span className="text-2xl font-bold text-slate-100">{maintainability.score.toFixed(1)}</span>
+          <div className="flex items-baseline space-x-1.5">
+            <span className="text-2xl font-bold text-slate-900 font-mono">{maintainability.score.toFixed(1)}</span>
             <span className="text-xs text-slate-400">/ 100</span>
           </div>
-          <div className="mt-1">
-            <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full border ${getMaintainabilityColor(maintainability.score)}`}>
+          <div className="mt-1.5">
+            <span className={`inline-block px-2 py-0.5 text-xs font-medium rounded border ${getMaintainabilityColor(maintainability.score)}`}>
               {maintainability.label}
             </span>
           </div>
         </div>
 
-        <div className="bg-slate-900/80 border border-slate-800 p-4 rounded-xl">
-          <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Quality Hotspots</span>
-            <AlertTriangle className="w-4 h-4 text-rose-400" />
+        <div className="bg-white border border-slate-200 p-4 rounded-lg shadow-sm">
+          <div className="flex items-center justify-between text-slate-500 mb-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider">Quality Hotspots</span>
+            <AlertTriangle className="w-4 h-4 text-rose-500" />
           </div>
-          <div className="text-2xl font-bold text-rose-400">{quality_summary.total_quality_flags}</div>
-          <div className="text-xs text-slate-400 mt-1">
+          <div className="text-2xl font-bold text-rose-600 font-mono">{quality_summary.total_quality_flags}</div>
+          <div className="text-xs text-slate-500 mt-1">
             {quality_summary.flagged_functions_count} functions, {quality_summary.flagged_files_count} files
           </div>
         </div>
@@ -130,94 +130,94 @@ export const ComplexityDashboard: React.FC<ComplexityDashboardProps> = ({ analys
       {/* Secondary Metrics & Complexity Distribution */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Function Scope Metrics */}
-        <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-xl space-y-4">
-          <h4 className="text-sm font-semibold text-slate-200 flex items-center space-x-2">
-            <Code2 className="w-4 h-4 text-indigo-400" />
+        <div className="bg-white border border-slate-200 p-5 rounded-lg shadow-sm space-y-4">
+          <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-800 flex items-center space-x-2">
+            <Code2 className="w-4 h-4 text-indigo-600" />
             <span>Structural & Scope Metrics</span>
           </h4>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between items-center py-1 border-b border-slate-800/80">
-              <span className="text-slate-400">Functions / Methods Analyzed</span>
-              <span className="font-semibold text-slate-200">{repository_totals.total_functions + repository_totals.total_methods}</span>
+          <div className="space-y-3 text-xs">
+            <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
+              <span className="text-slate-600">Functions / Methods Analyzed</span>
+              <span className="font-semibold text-slate-900 font-mono">{repository_totals.total_functions + repository_totals.total_methods}</span>
             </div>
-            <div className="flex justify-between items-center py-1 border-b border-slate-800/80">
-              <span className="text-slate-400">Average Function Length</span>
-              <span className="font-semibold text-slate-200">{averages.average_function_size.toFixed(1)} LOC</span>
+            <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
+              <span className="text-slate-600">Average Function Length</span>
+              <span className="font-semibold text-slate-900 font-mono">{averages.average_function_size.toFixed(1)} LOC</span>
             </div>
-            <div className="flex justify-between items-center py-1 border-b border-slate-800/80">
-              <span className="text-slate-400">Largest Function</span>
-              <span className="font-semibold text-amber-300">{maximums.max_function_size} LOC</span>
+            <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
+              <span className="text-slate-600">Largest Function</span>
+              <span className="font-semibold text-amber-700 font-mono">{maximums.max_function_size} LOC</span>
             </div>
-            <div className="flex justify-between items-center py-1 border-b border-slate-800/80">
-              <span className="text-slate-400">Average Block Nesting</span>
-              <span className="font-semibold text-slate-200">{averages.average_nesting_depth.toFixed(1)}</span>
+            <div className="flex justify-between items-center py-1.5 border-b border-slate-100">
+              <span className="text-slate-600">Average Block Nesting</span>
+              <span className="font-semibold text-slate-900 font-mono">{averages.average_nesting_depth.toFixed(1)}</span>
             </div>
-            <div className="flex justify-between items-center py-1">
-              <span className="text-slate-400">Maximum Block Nesting</span>
-              <span className="font-semibold text-rose-300">{maximums.max_nesting_depth}</span>
+            <div className="flex justify-between items-center py-1.5">
+              <span className="text-slate-600">Maximum Block Nesting</span>
+              <span className="font-semibold text-rose-600 font-mono">{maximums.max_nesting_depth}</span>
             </div>
           </div>
         </div>
 
         {/* Complexity Distribution Breakdown */}
-        <div className="lg:col-span-2 bg-slate-900/80 border border-slate-800 p-5 rounded-xl space-y-4">
+        <div className="lg:col-span-2 bg-white border border-slate-200 p-5 rounded-lg shadow-sm space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-semibold text-slate-200 flex items-center space-x-2">
-              <BarChart2 className="w-4 h-4 text-cyan-400" />
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-800 flex items-center space-x-2">
+              <BarChart2 className="w-4 h-4 text-indigo-600" />
               <span>Cyclomatic Complexity Distribution</span>
             </h4>
-            <span className="text-xs text-slate-400">{totalFuncs} executable scopes</span>
+            <span className="text-xs text-slate-500 font-mono">{totalFuncs} scopes</span>
           </div>
 
           {/* Segmented Bar */}
-          <div className="h-4 w-full bg-slate-800 rounded-full overflow-hidden flex">
+          <div className="h-3.5 w-full bg-slate-100 rounded-full overflow-hidden flex border border-slate-200">
             <div style={{ width: `${lowPct}%` }} className="bg-emerald-500 h-full transition-all duration-500" title={`Low (1-5): ${complexity_distribution.low}`} />
-            <div style={{ width: `${modPct}%` }} className="bg-cyan-500 h-full transition-all duration-500" title={`Moderate (6-10): ${complexity_distribution.moderate}`} />
+            <div style={{ width: `${modPct}%` }} className="bg-sky-500 h-full transition-all duration-500" title={`Moderate (6-10): ${complexity_distribution.moderate}`} />
             <div style={{ width: `${highPct}%` }} className="bg-amber-500 h-full transition-all duration-500" title={`High (11-20): ${complexity_distribution.high}`} />
-            <div style={{ width: `${vhighPct}%` }} className="bg-rose-500 h-full transition-all duration-500" title={`Very High (>20): ${complexity_distribution.very_high}`} />
+            <div style={{ width: `${vhighPct}%` }} className="bg-rose-500 h-full transition-all duration-500" title={`Critical (>20): ${complexity_distribution.very_high}`} />
           </div>
 
           {/* Legend Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-            <div className="bg-slate-800/40 p-3 rounded-lg border border-slate-800">
-              <div className="flex items-center space-x-1.5 text-xs text-slate-400">
+            <div className="bg-slate-50 p-3 rounded-md border border-slate-200">
+              <div className="flex items-center space-x-1.5 text-xs text-slate-600">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
                 <span>Low (1-5)</span>
               </div>
-              <div className="text-lg font-bold text-slate-100 mt-1">{complexity_distribution.low}</div>
-              <div className="text-xs text-slate-500">{lowPct}% of functions</div>
+              <div className="text-lg font-bold text-slate-900 font-mono mt-1">{complexity_distribution.low}</div>
+              <div className="text-[11px] text-slate-500">{lowPct}% of functions</div>
             </div>
 
-            <div className="bg-slate-800/40 p-3 rounded-lg border border-slate-800">
-              <div className="flex items-center space-x-1.5 text-xs text-slate-400">
-                <span className="w-2.5 h-2.5 rounded-full bg-cyan-500"></span>
+            <div className="bg-slate-50 p-3 rounded-md border border-slate-200">
+              <div className="flex items-center space-x-1.5 text-xs text-slate-600">
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
                 <span>Moderate (6-10)</span>
               </div>
-              <div className="text-lg font-bold text-slate-100 mt-1">{complexity_distribution.moderate}</div>
-              <div className="text-xs text-slate-500">{modPct}% of functions</div>
+              <div className="text-lg font-bold text-slate-900 font-mono mt-1">{complexity_distribution.moderate}</div>
+              <div className="text-[11px] text-slate-500">{modPct}% of functions</div>
             </div>
 
-            <div className="bg-slate-800/40 p-3 rounded-lg border border-slate-800">
-              <div className="flex items-center space-x-1.5 text-xs text-slate-400">
+            <div className="bg-slate-50 p-3 rounded-md border border-slate-200">
+              <div className="flex items-center space-x-1.5 text-xs text-slate-600">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                 <span>High (11-20)</span>
               </div>
-              <div className="text-lg font-bold text-slate-100 mt-1">{complexity_distribution.high}</div>
-              <div className="text-xs text-slate-500">{highPct}% of functions</div>
+              <div className="text-lg font-bold text-slate-900 font-mono mt-1">{complexity_distribution.high}</div>
+              <div className="text-[11px] text-slate-500">{highPct}% of functions</div>
             </div>
 
-            <div className="bg-slate-800/40 p-3 rounded-lg border border-slate-800">
-              <div className="flex items-center space-x-1.5 text-xs text-slate-400">
+            <div className="bg-slate-50 p-3 rounded-md border border-slate-200">
+              <div className="flex items-center space-x-1.5 text-xs text-slate-600">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
                 <span>Critical (&gt;20)</span>
               </div>
-              <div className="text-lg font-bold text-slate-100 mt-1">{complexity_distribution.very_high}</div>
-              <div className="text-xs text-slate-500">{vhighPct}% of functions</div>
+              <div className="text-lg font-bold text-slate-900 font-mono mt-1">{complexity_distribution.very_high}</div>
+              <div className="text-[11px] text-slate-500">{vhighPct}% of functions</div>
             </div>
           </div>
 
-          <div className="text-xs text-slate-400 bg-slate-950/40 p-2.5 rounded-lg border border-slate-800/60">
-            <span className="font-semibold text-slate-300">Maintainability Indicator:</span> Computed deterministically using normalized McCabe Cyclomatic Complexity, average function LOC, and comment density on a 0–100 scale.
+          <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded-md border border-slate-200">
+            <span className="font-semibold text-slate-800">Maintainability Indicator:</span> Computed deterministically using normalized McCabe Cyclomatic Complexity, average function LOC, and comment density on a 0–100 scale.
           </div>
         </div>
       </div>

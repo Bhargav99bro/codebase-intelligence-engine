@@ -9,13 +9,13 @@ interface SymbolExplorerProps {
 }
 
 const SYMBOL_TYPE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  function: { bg: "bg-blue-500/10", text: "text-blue-400", border: "border-blue-500/30" },
-  class: { bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/30" },
-  method: { bg: "bg-emerald-500/10", text: "text-emerald-400", border: "border-emerald-500/30" },
-  import: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/30" },
-  export: { bg: "bg-rose-500/10", text: "text-rose-400", border: "border-rose-500/30" },
-  interface: { bg: "bg-indigo-500/10", text: "text-indigo-400", border: "border-indigo-500/30" },
-  type: { bg: "bg-cyan-500/10", text: "text-cyan-400", border: "border-cyan-500/30" },
+  function: { bg: "bg-blue-50", text: "text-blue-700", border: "border-blue-200" },
+  class: { bg: "bg-purple-50", text: "text-purple-700", border: "border-purple-200" },
+  method: { bg: "bg-emerald-50", text: "text-emerald-700", border: "border-emerald-200" },
+  import: { bg: "bg-amber-50", text: "text-amber-800", border: "border-amber-200" },
+  export: { bg: "bg-rose-50", text: "text-rose-700", border: "border-rose-200" },
+  interface: { bg: "bg-indigo-50", text: "text-indigo-700", border: "border-indigo-200" },
+  type: { bg: "bg-cyan-50", text: "text-cyan-800", border: "border-cyan-200" },
 };
 
 export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
@@ -81,12 +81,12 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <div className="mt-8 bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
-      <div className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-800 gap-4">
+    <div className="bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between pb-5 border-b border-slate-200 gap-4">
         <div>
-          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+          <h3 className="text-base font-semibold text-slate-900 flex items-center gap-2">
             <svg
-              className="w-5 h-5 text-indigo-400"
+              className="w-4 h-4 text-indigo-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -100,25 +100,25 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
             </svg>
             Code Structure & Symbols
           </h3>
-          <p className="text-sm text-slate-400 mt-1">
-            Static structural analysis extracted using Tree-sitter & AST parsers.
+          <p className="text-xs text-slate-500 mt-1">
+            Static structural AST extracted symbols across functions, classes, interfaces, and types.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-slate-950 px-4 py-2 rounded-lg border border-slate-800">
-          <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold">Total Symbols</span>
-          <span className="text-lg font-mono font-bold text-indigo-400">{totalSymbols || totalCount}</span>
+        <div className="flex items-center gap-2.5 bg-slate-50 px-3 py-1.5 rounded-md border border-slate-200">
+          <span className="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Total Symbols</span>
+          <span className="text-sm font-mono font-bold text-slate-900">{totalSymbols || totalCount}</span>
         </div>
       </div>
 
       {/* Symbol Distribution Summary Pills */}
       {Object.keys(symbolDistribution).length > 0 && (
-        <div className="mt-6 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap gap-1.5">
           {Object.entries(symbolDistribution).map(([type, count]) => {
             const colors = SYMBOL_TYPE_COLORS[type.toLowerCase()] || {
-              bg: "bg-slate-800",
-              text: "text-slate-300",
-              border: "border-slate-700",
+              bg: "bg-slate-100",
+              text: "text-slate-700",
+              border: "border-slate-200",
             };
             const isFilterActive = selectedType === type;
             return (
@@ -128,12 +128,12 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
                   setSelectedType(isFilterActive ? "" : type);
                   setCurrentPage(0);
                 }}
-                className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-medium transition flex items-center gap-2 ${colors.bg} ${colors.text} ${colors.border} ${
-                  isFilterActive ? "ring-2 ring-indigo-400 shadow-md" : "hover:opacity-80"
+                className={`px-2.5 py-1 rounded border text-xs font-mono font-medium transition flex items-center gap-1.5 ${colors.bg} ${colors.text} ${colors.border} ${
+                  isFilterActive ? "ring-2 ring-indigo-500 shadow-sm" : "hover:opacity-85"
                 }`}
               >
                 <span className="capitalize">{type}s</span>
-                <span className="bg-slate-950/60 px-1.5 py-0.5 rounded text-[11px] font-bold">
+                <span className="bg-white/80 border border-slate-200/60 px-1 py-0.2 rounded text-[10px] font-bold">
                   {count}
                 </span>
               </button>
@@ -143,7 +143,7 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
       )}
 
       {/* Controls: Search and Filter */}
-      <div className="mt-6 flex flex-col sm:flex-row gap-3">
+      <div className="mt-4 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <input
             type="text"
@@ -153,7 +153,7 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
               setSearchQuery(e.target.value);
               setCurrentPage(0);
             }}
-            className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3.5 py-2 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+            className="w-full bg-white border border-slate-300 rounded-md px-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
           />
           {searchQuery && (
             <button
@@ -161,7 +161,7 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
                 setSearchQuery("");
                 setCurrentPage(0);
               }}
-              className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-white"
+              className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-600"
             >
               ✕
             </button>
@@ -174,7 +174,7 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
             setSelectedType(e.target.value);
             setCurrentPage(0);
           }}
-          className="bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500"
+          className="bg-white border border-slate-300 rounded-md px-3 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
         >
           <option value="">All Symbol Types</option>
           <option value="class">Classes</option>
@@ -188,21 +188,21 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
       </div>
 
       {/* Symbol Explorer Tree Content */}
-      <div className="mt-6 space-y-4">
+      <div className="mt-5 space-y-3">
         {loading && (
-          <div className="p-8 text-center text-slate-400 animate-pulse">
+          <div className="p-8 text-center text-slate-500 text-xs animate-pulse">
             Loading extracted symbols...
           </div>
         )}
 
         {error && (
-          <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-lg text-rose-400 text-sm">
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-md text-rose-700 text-xs">
             {error}
           </div>
         )}
 
         {!loading && !error && Object.keys(groupedByFile).length === 0 && (
-          <div className="p-8 text-center text-slate-500 text-sm bg-slate-950/40 rounded-lg border border-slate-800">
+          <div className="p-8 text-center text-slate-500 text-xs bg-slate-50 rounded-md border border-slate-200">
             No symbols found matching your filter criteria.
           </div>
         )}
@@ -230,13 +230,13 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
             return (
               <div
                 key={filePath}
-                className="bg-slate-950/60 border border-slate-800/80 rounded-xl overflow-hidden"
+                className="bg-white border border-slate-200 rounded-md overflow-hidden"
               >
                 {/* File Header */}
-                <div className="px-4 py-2.5 bg-slate-900/80 border-b border-slate-800/80 flex items-center justify-between">
-                  <div className="flex items-center gap-2 font-mono text-xs text-slate-300">
+                <div className="px-3.5 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-mono text-xs text-slate-700">
                     <svg
-                      className="w-4 h-4 text-slate-500"
+                      className="w-3.5 h-3.5 text-slate-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -248,38 +248,38 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
                         d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
                       />
                     </svg>
-                    <span className="font-semibold text-slate-200">{filePath}</span>
+                    <span className="font-semibold text-slate-900">{filePath}</span>
                   </div>
-                  <span className="text-[11px] font-mono text-slate-400 bg-slate-800/60 px-2 py-0.5 rounded">
+                  <span className="text-[11px] font-mono text-slate-600 bg-white border border-slate-200 px-2 py-0.5 rounded">
                     {fileSymbols.length} symbol{fileSymbols.length === 1 ? "" : "s"}
                   </span>
                 </div>
 
                 {/* File Symbols List */}
-                <div className="p-3 space-y-1">
+                <div className="p-2.5 space-y-0.5">
                   {roots.map((rootSym) => {
                     const children = childrenByParent.get(rootSym.id) || [];
                     const rootColors = SYMBOL_TYPE_COLORS[rootSym.symbol_type.toLowerCase()] || {
-                      bg: "bg-slate-800",
-                      text: "text-slate-300",
-                      border: "border-slate-700",
+                      bg: "bg-slate-100",
+                      text: "text-slate-700",
+                      border: "border-slate-200",
                     };
 
                     return (
-                      <div key={rootSym.id} className="space-y-1">
+                      <div key={rootSym.id} className="space-y-0.5">
                         {/* Root Symbol Line */}
-                        <div className="flex items-center justify-between py-1.5 px-2.5 rounded-lg hover:bg-slate-800/40 transition group font-mono text-xs">
-                          <div className="flex items-center gap-2.5 overflow-hidden">
+                        <div className="flex items-center justify-between py-1 px-2 rounded hover:bg-slate-50 transition group font-mono text-xs">
+                          <div className="flex items-center gap-2 overflow-hidden">
                             <span
-                              className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold border ${rootColors.bg} ${rootColors.text} ${rootColors.border}`}
+                              className={`px-1.5 py-0.2 rounded text-[9px] uppercase font-bold border ${rootColors.bg} ${rootColors.text} ${rootColors.border}`}
                             >
                               {rootSym.symbol_type}
                             </span>
-                            <span className="text-slate-100 font-semibold truncate group-hover:text-indigo-300">
+                            <span className="text-slate-900 font-semibold truncate group-hover:text-indigo-600">
                               {rootSym.name}
                             </span>
                             {rootSym.signature && (
-                              <span className="text-slate-500 text-[11px] truncate hidden sm:inline">
+                              <span className="text-slate-400 text-[11px] truncate hidden sm:inline">
                                 {rootSym.signature}
                               </span>
                             )}
@@ -293,34 +293,34 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
 
                         {/* Indented Children (e.g. Class Methods) */}
                         {children.length > 0 && (
-                          <div className="ml-6 pl-3 border-l border-slate-800 space-y-1">
+                          <div className="ml-5 pl-2.5 border-l border-slate-200 space-y-0.5">
                             {children.map((childSym, idx) => {
                               const isLast = idx === children.length - 1;
                               const childColors = SYMBOL_TYPE_COLORS[childSym.symbol_type.toLowerCase()] || {
-                                bg: "bg-slate-800",
-                                text: "text-slate-300",
-                                border: "border-slate-700",
+                                bg: "bg-slate-100",
+                                text: "text-slate-700",
+                                border: "border-slate-200",
                               };
 
                               return (
                                 <div
                                   key={childSym.id}
-                                  className="flex items-center justify-between py-1 px-2 rounded hover:bg-slate-800/40 transition group font-mono text-xs relative"
+                                  className="flex items-center justify-between py-0.5 px-1.5 rounded hover:bg-slate-50 transition group font-mono text-xs relative"
                                 >
-                                  <div className="flex items-center gap-2 overflow-hidden">
-                                    <span className="text-slate-600 select-none">
+                                  <div className="flex items-center gap-1.5 overflow-hidden">
+                                    <span className="text-slate-400 select-none text-[10px]">
                                       {isLast ? "└──" : "├──"}
                                     </span>
                                     <span
-                                      className={`px-1.5 py-0.5 rounded text-[9px] uppercase font-bold border ${childColors.bg} ${childColors.text} ${childColors.border}`}
+                                      className={`px-1 py-0.2 rounded text-[9px] uppercase font-bold border ${childColors.bg} ${childColors.text} ${childColors.border}`}
                                     >
                                       {childSym.symbol_type}
                                     </span>
-                                    <span className="text-slate-200 font-medium truncate group-hover:text-emerald-300">
+                                    <span className="text-slate-700 font-medium truncate group-hover:text-indigo-600">
                                       {childSym.name}
                                     </span>
                                     {childSym.signature && (
-                                      <span className="text-slate-500 text-[11px] truncate hidden md:inline">
+                                      <span className="text-slate-400 text-[11px] truncate hidden md:inline">
                                         {childSym.signature}
                                       </span>
                                     )}
@@ -346,7 +346,7 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
 
       {/* Pagination Controls */}
       {totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-between pt-4 border-t border-slate-800 text-xs text-slate-400 font-mono">
+        <div className="mt-5 flex items-center justify-between pt-3 border-t border-slate-200 text-xs text-slate-600 font-mono">
           <span>
             Showing page {currentPage + 1} of {totalPages} ({totalCount} symbols)
           </span>
@@ -355,14 +355,14 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
             <button
               disabled={currentPage === 0}
               onClick={() => setCurrentPage((p) => Math.max(0, p - 1))}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-slate-800 rounded text-slate-200 transition"
+              className="px-2.5 py-1 bg-white hover:bg-slate-50 border border-slate-300 disabled:opacity-40 disabled:hover:bg-white rounded text-slate-700 transition"
             >
               Previous
             </button>
             <button
               disabled={currentPage >= totalPages - 1}
               onClick={() => setCurrentPage((p) => Math.min(totalPages - 1, p + 1))}
-              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 disabled:hover:bg-slate-800 rounded text-slate-200 transition"
+              className="px-2.5 py-1 bg-white hover:bg-slate-50 border border-slate-300 disabled:opacity-40 disabled:hover:bg-white rounded text-slate-700 transition"
             >
               Next
             </button>
@@ -372,3 +372,4 @@ export const SymbolExplorer: React.FC<SymbolExplorerProps> = ({
     </div>
   );
 };
+

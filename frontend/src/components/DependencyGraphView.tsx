@@ -173,28 +173,28 @@ export const DependencyGraphView: React.FC<DependencyGraphViewProps> = ({
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col">
+    <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col">
       {/* Controls toolbar */}
-      <div className="px-4 py-3 bg-gray-50 border-b border-gray-200 flex flex-wrap items-center justify-between gap-3 text-sm">
-        <div className="flex items-center space-x-4">
-          <span className="font-semibold text-gray-700">Directed Dependency Graph</span>
-          <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
-            {nodes.length} nodes · {edges.length} edges
+      <div className="px-4 py-2.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center space-x-3">
+          <span className="font-semibold text-slate-800">Directed Dependency Graph</span>
+          <span className="text-[11px] text-slate-600 bg-slate-200/80 px-2 py-0.5 rounded font-mono">
+            {nodes.length} nodes &middot; {edges.length} edges
           </span>
-          <span className="text-xs text-gray-400">Arrow points from importer → imported</span>
+          <span className="text-[11px] text-slate-500">Arrow points from importer &rarr; imported</span>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
           <button
             onClick={() => setZoom((z) => Math.min(z + 0.2, 2.5))}
-            className="p-1.5 text-gray-600 hover:bg-gray-200 rounded transition"
+            className="p-1.5 text-slate-600 hover:bg-slate-200/70 rounded transition"
             title="Zoom in"
           >
             <ZoomIn className="w-4 h-4" />
           </button>
           <button
             onClick={() => setZoom((z) => Math.max(z - 0.2, 0.4))}
-            className="p-1.5 text-gray-600 hover:bg-gray-200 rounded transition"
+            className="p-1.5 text-slate-600 hover:bg-slate-200/70 rounded transition"
             title="Zoom out"
           >
             <ZoomOut className="w-4 h-4" />
@@ -204,7 +204,7 @@ export const DependencyGraphView: React.FC<DependencyGraphViewProps> = ({
               setZoom(1);
               setPan({ x: 0, y: 0 });
             }}
-            className="p-1.5 text-gray-600 hover:bg-gray-200 rounded transition"
+            className="p-1.5 text-slate-600 hover:bg-slate-200/70 rounded transition"
             title="Reset View"
           >
             <RotateCcw className="w-4 h-4" />
@@ -213,7 +213,7 @@ export const DependencyGraphView: React.FC<DependencyGraphViewProps> = ({
       </div>
 
       {/* SVG Canvas */}
-      <div className="relative w-full h-[550px] bg-slate-900 cursor-grab active:cursor-grabbing overflow-hidden">
+      <div className="relative w-full h-[550px] bg-slate-50 cursor-grab active:cursor-grabbing overflow-hidden">
         <svg
           ref={svgRef}
           className="w-full h-full"
@@ -244,7 +244,7 @@ export const DependencyGraphView: React.FC<DependencyGraphViewProps> = ({
               markerHeight="7"
               orient="auto-start-reverse"
             >
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#4f46e5" />
             </marker>
           </defs>
 
@@ -265,9 +265,9 @@ export const DependencyGraphView: React.FC<DependencyGraphViewProps> = ({
                   y1={src.y}
                   x2={tgt.x}
                   y2={tgt.y}
-                  stroke={isEdgeActive ? '#38bdf8' : '#475569'}
+                  stroke={isEdgeActive ? '#4f46e5' : '#cbd5e1'}
                   strokeWidth={isEdgeActive ? 2.5 : 1.2}
-                  strokeOpacity={isDimmed ? 0.15 : isEdgeActive ? 0.95 : 0.45}
+                  strokeOpacity={isDimmed ? 0.15 : isEdgeActive ? 0.95 : 0.7}
                   markerEnd={isEdgeActive ? 'url(#arrow-active)' : 'url(#arrow)'}
                 />
               );
@@ -303,7 +303,7 @@ export const DependencyGraphView: React.FC<DependencyGraphViewProps> = ({
                     <circle
                       r={radius + 4}
                       fill="none"
-                      stroke={node.in_cycle ? '#ef4444' : '#38bdf8'}
+                      stroke={node.in_cycle ? '#e11d48' : '#4f46e5'}
                       strokeWidth={2}
                       strokeDasharray={node.in_cycle ? '3,3' : undefined}
                       opacity={0.8}
@@ -322,7 +322,7 @@ export const DependencyGraphView: React.FC<DependencyGraphViewProps> = ({
                   <text
                     dy={radius + 12}
                     textAnchor="middle"
-                    fill={isNodeActive || isSelected ? '#ffffff' : '#cbd5e1'}
+                    fill={isNodeActive || isSelected ? '#0f172a' : '#475569'}
                     fontSize={10}
                     fontWeight={isNodeActive || isSelected ? '600' : '400'}
                     className="select-none pointer-events-none"
@@ -337,19 +337,19 @@ export const DependencyGraphView: React.FC<DependencyGraphViewProps> = ({
 
         {/* Selected file detail card overlay */}
         {activeNodeId && nodePosMap.has(activeNodeId) && (
-          <div className="absolute top-3 right-3 bg-slate-800/95 backdrop-blur text-white border border-slate-700 p-3 rounded-lg shadow-xl text-xs max-w-xs space-y-1.5">
+          <div className="absolute top-3 right-3 bg-white text-slate-900 border border-slate-200 p-3.5 rounded-lg shadow-lg text-xs max-w-xs space-y-2">
             {(() => {
               const n = nodePosMap.get(activeNodeId)!;
               return (
                 <>
-                  <div className="font-semibold text-sky-400 truncate">{n.path}</div>
-                  <div className="grid grid-cols-2 gap-2 text-slate-300 pt-1 border-t border-slate-700">
-                    <div>Fan-In: <span className="text-white font-mono">{n.fan_in}</span></div>
-                    <div>Fan-Out: <span className="text-white font-mono">{n.fan_out}</span></div>
-                    <div>Instability: <span className="text-white font-mono">{n.instability}</span></div>
-                    <div>Cycle: <span className={n.in_cycle ? "text-red-400 font-semibold" : "text-emerald-400"}>{n.in_cycle ? 'Yes' : 'No'}</span></div>
+                  <div className="font-semibold text-indigo-700 truncate font-mono">{n.path}</div>
+                  <div className="grid grid-cols-2 gap-2 text-slate-600 pt-1.5 border-t border-slate-100 text-xs">
+                    <div>Fan-In: <span className="text-slate-900 font-bold font-mono">{n.fan_in}</span></div>
+                    <div>Fan-Out: <span className="text-slate-900 font-bold font-mono">{n.fan_out}</span></div>
+                    <div>Instability: <span className="text-slate-900 font-bold font-mono">{n.instability}</span></div>
+                    <div>Cycle: <span className={n.in_cycle ? "text-rose-600 font-semibold" : "text-emerald-600 font-semibold"}>{n.in_cycle ? 'Yes' : 'No'}</span></div>
                   </div>
-                  <div className="text-[10px] text-slate-400 pt-1">
+                  <div className="text-[10px] text-slate-500 pt-1">
                     Click node to inspect in Change Impact Explorer
                   </div>
                 </>
@@ -360,8 +360,8 @@ export const DependencyGraphView: React.FC<DependencyGraphViewProps> = ({
       </div>
 
       {/* Legend */}
-      <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 flex flex-wrap items-center gap-4 text-xs text-gray-600">
-        <span className="font-medium text-gray-500">Legend:</span>
+      <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center gap-4 text-xs text-slate-600">
+        <span className="font-medium text-slate-500">Legend:</span>
         <div className="flex items-center space-x-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
           <span>Python</span>
@@ -375,10 +375,10 @@ export const DependencyGraphView: React.FC<DependencyGraphViewProps> = ({
           <span>JavaScript</span>
         </div>
         <div className="flex items-center space-x-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block ring-2 ring-red-300" />
+          <span className="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block ring-2 ring-rose-200" />
           <span>In Cycle</span>
         </div>
-        <span className="text-gray-400">| Circle radius proportional to Fan-In</span>
+        <span className="text-slate-400">| Circle radius proportional to Fan-In</span>
       </div>
     </div>
   );

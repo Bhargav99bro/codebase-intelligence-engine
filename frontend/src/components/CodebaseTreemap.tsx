@@ -68,7 +68,7 @@ export const CodebaseTreemap: React.FC<CodebaseTreemapProps> = ({ analysisId }) 
   // Color generator based on metric
   const getNodeColor = (node: TreemapNodeData): string => {
     if (node.type === "directory") {
-      return "rgba(30, 41, 59, 0.4)"; // Slate-800
+      return "#e2e8f0"; // Slate-200
     }
 
     if (colorMetric === "maintainability") {
@@ -87,14 +87,14 @@ export const CodebaseTreemap: React.FC<CodebaseTreemapProps> = ({ analysisId }) 
 
     if (colorMetric === "issues") {
       const count = node.issue_count ?? 0;
-      if (count === 0) return "#64748b"; // Slate-500 (clean)
+      if (count === 0) return "#94a3b8"; // Slate-400 (clean)
       if (node.dominant_severity === "blocker" || node.dominant_severity === "critical" || count >= 4) {
         return "#ef4444"; // Rose
       }
       return "#f59e0b"; // Amber
     }
 
-    return "#3b82f6";
+    return "#6366f1";
   };
 
   const handleNodeClick = (node: TreemapNodeData) => {
@@ -119,50 +119,50 @@ export const CodebaseTreemap: React.FC<CodebaseTreemapProps> = ({ analysisId }) 
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 bg-slate-900 border border-slate-800 rounded-xl">
-        <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-slate-400 text-sm">Computing squarified codebase treemap...</p>
+      <div className="flex flex-col items-center justify-center p-12 bg-white border border-slate-200 rounded-lg shadow-sm">
+        <div className="w-8 h-8 border-3 border-indigo-600 border-t-transparent rounded-full animate-spin mb-3" />
+        <p className="text-slate-600 text-xs">Computing squarified codebase treemap...</p>
       </div>
     );
   }
 
   if (error || !rootNode || !currentNode) {
     return (
-      <div className="p-8 bg-rose-950/20 border border-rose-900/50 rounded-xl text-center">
-        <AlertTriangle className="w-10 h-10 text-rose-500 mx-auto mb-3" />
-        <h3 className="text-lg font-semibold text-rose-200 mb-1">Treemap Unavailable</h3>
-        <p className="text-rose-400 text-sm">{error || "No data available for treemap."}</p>
+      <div className="p-8 bg-white border border-rose-200 rounded-lg text-center shadow-sm">
+        <AlertTriangle className="w-8 h-8 text-rose-500 mx-auto mb-2" />
+        <h3 className="text-sm font-semibold text-slate-900 mb-1">Treemap Unavailable</h3>
+        <p className="text-rose-600 text-xs">{error || "No data available for treemap."}</p>
       </div>
     );
   }
 
   return (
-    <div className="relative flex flex-col bg-slate-900 border border-slate-800 rounded-xl shadow-xl overflow-hidden">
+    <div className="relative flex flex-col bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
       {/* Top Header & Navigation Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 border-b border-slate-800 bg-slate-950/60">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 border-b border-slate-200 bg-slate-50">
         {/* Breadcrumb Navigation */}
-        <div className="flex items-center space-x-1.5 overflow-x-auto text-sm py-1">
+        <div className="flex items-center space-x-1 overflow-x-auto text-xs py-0.5">
           <button
             onClick={() => navigateToBreadcrumb(-1)}
-            className={`flex items-center px-2.5 py-1 rounded-md font-medium transition ${
+            className={`flex items-center px-2 py-1 rounded font-medium transition ${
               currentPath.length === 0
-                ? "bg-slate-800 text-emerald-400"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                ? "bg-white text-indigo-700 border border-slate-200 shadow-sm"
+                : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
             }`}
           >
-            <Folder className="w-4 h-4 mr-1.5" />
+            <Folder className="w-3.5 h-3.5 mr-1 text-slate-500" />
             root
           </button>
 
           {currentPath.map((seg, idx) => (
             <React.Fragment key={idx}>
-              <ChevronRight className="w-4 h-4 text-slate-600 shrink-0" />
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <button
                 onClick={() => navigateToBreadcrumb(idx)}
-                className={`flex items-center px-2.5 py-1 rounded-md font-medium transition whitespace-nowrap ${
+                className={`flex items-center px-2 py-1 rounded font-medium transition whitespace-nowrap ${
                   idx === currentPath.length - 1
-                    ? "bg-slate-800 text-emerald-400"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                    ? "bg-white text-indigo-700 border border-slate-200 shadow-sm"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
                 }`}
               >
                 {seg}
@@ -173,34 +173,34 @@ export const CodebaseTreemap: React.FC<CodebaseTreemapProps> = ({ analysisId }) 
 
         {/* Color Mode Switcher */}
         <div className="flex items-center space-x-2">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Color by:</span>
-          <div className="inline-flex rounded-lg p-0.5 bg-slate-800 border border-slate-700">
+          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Color by:</span>
+          <div className="inline-flex rounded-md p-0.5 bg-slate-200/80 border border-slate-300/80">
             <button
               onClick={() => setColorMetric("maintainability")}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition ${
+              className={`px-2.5 py-0.5 text-xs font-medium rounded transition ${
                 colorMetric === "maintainability"
-                  ? "bg-emerald-600 text-white shadow-sm"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Maintainability
             </button>
             <button
               onClick={() => setColorMetric("complexity")}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition ${
+              className={`px-2.5 py-0.5 text-xs font-medium rounded transition ${
                 colorMetric === "complexity"
-                  ? "bg-emerald-600 text-white shadow-sm"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Complexity
             </button>
             <button
               onClick={() => setColorMetric("issues")}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition ${
+              className={`px-2.5 py-0.5 text-xs font-medium rounded transition ${
                 colorMetric === "issues"
-                  ? "bg-emerald-600 text-white shadow-sm"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-white text-slate-900 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
               }`}
             >
               Issues
@@ -210,11 +210,11 @@ export const CodebaseTreemap: React.FC<CodebaseTreemapProps> = ({ analysisId }) 
       </div>
 
       {/* Treemap SVG Canvas */}
-      <div className="relative w-full h-[620px] bg-slate-950 p-3 overflow-hidden select-none">
+      <div className="relative w-full h-[620px] bg-slate-100 p-2.5 overflow-hidden select-none">
         <svg
           viewBox="0 0 1000 1000"
           preserveAspectRatio="none"
-          className="w-full h-full rounded-lg"
+          className="w-full h-full rounded border border-slate-200 bg-white"
         >
           {currentNode.children?.map((child, idx) => {
             const rect = child.layout_rect || {
@@ -241,9 +241,9 @@ export const CodebaseTreemap: React.FC<CodebaseTreemapProps> = ({ analysisId }) 
                   width={Math.max(1, rect.width)}
                   height={Math.max(1, rect.height)}
                   fill={fill}
-                  stroke="#0f172a"
+                  stroke="#ffffff"
                   strokeWidth="1.5"
-                  rx="3"
+                  rx="2"
                   className="transition-all"
                 />
 
@@ -252,11 +252,10 @@ export const CodebaseTreemap: React.FC<CodebaseTreemapProps> = ({ analysisId }) 
                   <text
                     x={rect.x + 6}
                     y={rect.y + 16}
-                    fill="#ffffff"
+                    fill={isDir ? "#334155" : "#ffffff"}
                     fontSize={Math.min(13, Math.max(10, rect.width / 10))}
                     fontWeight={isDir ? "600" : "500"}
-                    clipPath={`url(#clip-${idx})`}
-                    className="pointer-events-none"
+                    className="pointer-events-none font-sans"
                   >
                     {child.name}
                   </text>
@@ -266,10 +265,10 @@ export const CodebaseTreemap: React.FC<CodebaseTreemapProps> = ({ analysisId }) 
                 {rect.width > 60 && rect.height > 45 && (
                   <text
                     x={rect.x + 6}
-                    y={rect.y + 32}
-                    fill="rgba(255, 255, 255, 0.7)"
-                    fontSize="10"
-                    className="pointer-events-none"
+                    y={rect.y + 30}
+                    fill={isDir ? "#64748b" : "rgba(255, 255, 255, 0.85)"}
+                    fontSize="9"
+                    className="pointer-events-none font-mono"
                   >
                     {child.sloc.toLocaleString()} SLOC
                   </text>
@@ -281,62 +280,62 @@ export const CodebaseTreemap: React.FC<CodebaseTreemapProps> = ({ analysisId }) 
 
         {/* Hover Tooltip Overlay */}
         {hoveredNode && (
-          <div className="absolute bottom-4 left-4 pointer-events-none z-20 px-3.5 py-2.5 bg-slate-900/95 backdrop-blur-md border border-slate-700 rounded-lg shadow-2xl text-xs text-slate-200 max-w-sm">
-            <div className="font-semibold text-slate-100 flex items-center space-x-1.5 mb-1">
+          <div className="absolute bottom-4 left-4 pointer-events-none z-20 px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg shadow-xl text-xs text-slate-700 max-w-sm">
+            <div className="font-semibold text-slate-900 flex items-center space-x-1.5 mb-1">
               {hoveredNode.type === "directory" ? (
-                <Folder className="w-3.5 h-3.5 text-blue-400" />
+                <Folder className="w-3.5 h-3.5 text-indigo-600" />
               ) : (
-                <FileCode className="w-3.5 h-3.5 text-emerald-400" />
+                <FileCode className="w-3.5 h-3.5 text-indigo-600" />
               )}
-              <span className="truncate">{hoveredNode.path}</span>
+              <span className="truncate font-mono">{hoveredNode.path}</span>
             </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-slate-300">
-              <div>SLOC: <span className="font-medium text-white">{hoveredNode.sloc.toLocaleString()}</span></div>
-              {hoveredNode.language && <div>Lang: <span className="font-medium text-white">{hoveredNode.language}</span></div>}
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-slate-600 font-mono text-[11px] pt-1 border-t border-slate-100">
+              <div>SLOC: <span className="font-bold text-slate-900">{hoveredNode.sloc.toLocaleString()}</span></div>
+              {hoveredNode.language && <div>Lang: <span className="font-bold text-slate-900">{hoveredNode.language}</span></div>}
               {hoveredNode.maintainability_score !== null && hoveredNode.maintainability_score !== undefined && (
-                <div>MI: <span className="font-medium text-white">{hoveredNode.maintainability_score.toFixed(1)}</span></div>
+                <div>MI: <span className="font-bold text-slate-900">{hoveredNode.maintainability_score.toFixed(1)}</span></div>
               )}
               {hoveredNode.max_cyclomatic_complexity !== null && hoveredNode.max_cyclomatic_complexity !== undefined && (
-                <div>Max CC: <span className="font-medium text-white">{hoveredNode.max_cyclomatic_complexity}</span></div>
+                <div>Max CC: <span className="font-bold text-slate-900">{hoveredNode.max_cyclomatic_complexity}</span></div>
               )}
-              <div>Issues: <span className="font-medium text-white">{hoveredNode.issue_count ?? 0}</span></div>
+              <div>Issues: <span className="font-bold text-slate-900">{hoveredNode.issue_count ?? 0}</span></div>
             </div>
           </div>
         )}
       </div>
 
       {/* Legend & Stats Footer */}
-      <div className="flex flex-wrap items-center justify-between px-4 py-3 border-t border-slate-800 bg-slate-950/60 text-xs text-slate-400">
+      <div className="flex flex-wrap items-center justify-between px-4 py-2.5 border-t border-slate-200 bg-slate-50 text-xs text-slate-600">
         <div className="flex items-center space-x-4">
-          <span className="font-medium text-slate-300">
+          <span className="font-semibold text-slate-800">
             {currentNode.name === "root" ? "Total Codebase:" : `${currentNode.name}:`}
           </span>
-          <span>{currentNode.sloc.toLocaleString()} SLOC</span>
-          <span>{currentNode.file_count ?? currentNode.children?.length ?? 0} files/dirs</span>
+          <span className="font-mono">{currentNode.sloc.toLocaleString()} SLOC</span>
+          <span className="font-mono">{currentNode.file_count ?? currentNode.children?.length ?? 0} files/dirs</span>
         </div>
 
         {/* Legend */}
-        <div className="flex items-center space-x-3">
-          <span className="text-slate-500">Legend:</span>
+        <div className="flex items-center space-x-3 text-xs">
+          <span className="text-slate-500 font-medium">Legend:</span>
           {colorMetric === "maintainability" && (
             <>
-              <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1" /> ≥70 Good</span>
+              <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1" /> &ge;70 Good</span>
               <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1" /> 40–69 Moderate</span>
               <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1" /> &lt;40 Low</span>
             </>
           )}
           {colorMetric === "complexity" && (
             <>
-              <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1" /> ≤5 Low</span>
+              <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-1" /> &le;5 Low</span>
               <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1" /> 6–15 Moderate</span>
               <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1" /> &gt;15 High</span>
             </>
           )}
           {colorMetric === "issues" && (
             <>
-              <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-slate-500 mr-1" /> 0 Issues</span>
+              <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-slate-400 mr-1" /> 0 Issues</span>
               <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-amber-500 mr-1" /> 1–3 Issues</span>
-              <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1" /> ≥4 or Critical</span>
+              <span className="flex items-center"><span className="w-2.5 h-2.5 rounded-full bg-rose-500 mr-1" /> &ge;4 or Critical</span>
             </>
           )}
         </div>
@@ -344,17 +343,17 @@ export const CodebaseTreemap: React.FC<CodebaseTreemapProps> = ({ analysisId }) 
 
       {/* File Details Drawer */}
       {selectedFile && (
-        <div className="absolute inset-y-0 right-0 w-96 bg-slate-900 border-l border-slate-800 p-5 shadow-2xl z-30 flex flex-col">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="absolute inset-y-0 right-0 w-96 bg-white border-l border-slate-200 p-5 shadow-2xl z-30 flex flex-col">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-200">
             <div className="flex items-center space-x-2">
-              <FileCode className="w-5 h-5 text-emerald-400" />
-              <h4 className="font-semibold text-slate-100 text-sm truncate max-w-[240px]">
+              <FileCode className="w-4 h-4 text-indigo-600" />
+              <h4 className="font-semibold text-slate-900 text-sm truncate max-w-[240px]">
                 {selectedFile.name}
               </h4>
             </div>
             <button
               onClick={() => setSelectedFile(null)}
-              className="p-1 text-slate-400 hover:text-slate-200 rounded-md hover:bg-slate-800"
+              className="p-1 text-slate-400 hover:text-slate-600 rounded-md hover:bg-slate-100"
             >
               <X className="w-4 h-4" />
             </button>
@@ -362,48 +361,48 @@ export const CodebaseTreemap: React.FC<CodebaseTreemapProps> = ({ analysisId }) 
 
           <div className="py-4 space-y-4 flex-1 overflow-y-auto">
             <div>
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">File Path</span>
-              <p className="text-sm font-mono text-slate-200 break-all bg-slate-950/60 p-2 rounded mt-1 border border-slate-800">
+              <span className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">File Path</span>
+              <p className="text-xs font-mono text-slate-800 break-all bg-slate-50 p-2.5 rounded mt-1 border border-slate-200">
                 {selectedFile.path}
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
-                <span className="text-xs text-slate-400">SLOC</span>
-                <p className="text-lg font-bold text-white mt-0.5">{selectedFile.sloc.toLocaleString()}</p>
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <span className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">SLOC</span>
+                <p className="text-lg font-bold font-mono text-slate-900 mt-0.5">{selectedFile.sloc.toLocaleString()}</p>
               </div>
-              <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
-                <span className="text-xs text-slate-400">Language</span>
-                <p className="text-lg font-bold text-white mt-0.5">{selectedFile.language || "Unknown"}</p>
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <span className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">Language</span>
+                <p className="text-lg font-bold font-mono text-slate-900 mt-0.5">{selectedFile.language || "Unknown"}</p>
               </div>
-              <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
-                <span className="text-xs text-slate-400">Maintainability</span>
-                <p className="text-lg font-bold text-emerald-400 mt-0.5">
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <span className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">Maintainability</span>
+                <p className="text-lg font-bold font-mono text-emerald-700 mt-0.5">
                   {selectedFile.maintainability_score !== null && selectedFile.maintainability_score !== undefined
                     ? selectedFile.maintainability_score.toFixed(1)
                     : "N/A"}
                 </p>
               </div>
-              <div className="bg-slate-950/60 p-3 rounded-lg border border-slate-800">
-                <span className="text-xs text-slate-400">Max CC</span>
-                <p className="text-lg font-bold text-amber-400 mt-0.5">
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <span className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">Max CC</span>
+                <p className="text-lg font-bold font-mono text-amber-700 mt-0.5">
                   {selectedFile.max_cyclomatic_complexity ?? "N/A"}
                 </p>
               </div>
             </div>
 
             <div>
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">
+              <span className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold">
                 Detected Issues ({selectedFile.issue_count ?? 0})
               </span>
               <div className="mt-2 space-y-2">
                 {selectedFile.issue_count === 0 ? (
-                  <p className="text-xs text-emerald-400 bg-emerald-950/20 p-2.5 rounded border border-emerald-900/40">
+                  <p className="text-xs text-emerald-800 bg-emerald-50 p-2.5 rounded border border-emerald-200">
                     No diagnostic issues detected in this file.
                   </p>
                 ) : (
-                  <p className="text-xs text-amber-400 bg-amber-950/20 p-2.5 rounded border border-amber-900/40">
+                  <p className="text-xs text-amber-800 bg-amber-50 p-2.5 rounded border border-amber-200">
                     {selectedFile.issue_count} issues detected. Check the Issues tab for line-by-line remediations.
                   </p>
                 )}

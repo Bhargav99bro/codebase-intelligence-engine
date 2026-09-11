@@ -78,25 +78,25 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
     switch (status) {
       case "internal":
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-emerald-50 text-emerald-700 border border-emerald-200">
             INTERNAL
           </span>
         );
       case "external":
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-sky-500/20 text-sky-300 border border-sky-500/30">
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-sky-50 text-sky-700 border border-sky-200">
             EXTERNAL
           </span>
         );
       case "unresolved":
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30">
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-rose-50 text-rose-700 border border-rose-200">
             UNRESOLVED
           </span>
         );
       default:
         return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-slate-800 text-slate-400">
+          <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold font-mono bg-slate-100 text-slate-700 border border-slate-200">
             {status}
           </span>
         );
@@ -106,7 +106,7 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
   return (
     <div className="space-y-4">
       {/* Search & Filter Toolbar */}
-      <div className="bg-slate-900/80 border border-slate-800 p-3 rounded-xl flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="bg-white border border-slate-200 p-3 rounded-lg shadow-sm flex flex-col sm:flex-row gap-3 items-center justify-between">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -114,7 +114,7 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search source file or target module..."
-            className="w-full bg-slate-950/80 border border-slate-700 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono transition"
+            className="w-full bg-white border border-slate-300 rounded-md pl-9 pr-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 font-mono transition"
           />
         </div>
 
@@ -125,7 +125,7 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
               setResolutionStatus(e.target.value);
               setSkip(0);
             }}
-            className="bg-slate-950/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 font-mono"
+            className="bg-white border border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 font-mono"
           >
             <option value="">All Statuses</option>
             <option value="internal">Internal Only</option>
@@ -139,7 +139,7 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
               setDependencyType(e.target.value);
               setSkip(0);
             }}
-            className="bg-slate-950/80 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 font-mono"
+            className="bg-white border border-slate-300 rounded-md px-2.5 py-1.5 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 font-mono"
           >
             <option value="">All Types</option>
             <option value="import">import</option>
@@ -153,14 +153,14 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
       </div>
 
       {/* Table Container */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-xl overflow-hidden">
+      <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center p-12 text-cyan-400">
+          <div className="flex items-center justify-center p-12 text-indigo-600">
             <RefreshCw className="w-5 h-5 animate-spin mr-2" />
-            <span className="text-xs font-medium">Loading dependency edges...</span>
+            <span className="text-xs font-medium text-slate-700">Loading dependency edges...</span>
           </div>
         ) : error ? (
-          <div className="p-6 text-center text-rose-400 text-xs">{error}</div>
+          <div className="p-6 text-center text-rose-600 text-xs">{error}</div>
         ) : !data || data.items.length === 0 ? (
           <div className="p-8 text-center text-slate-500 text-xs font-mono">
             No dependency relationships found matching the selected filters.
@@ -168,7 +168,7 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs font-mono">
-              <thead className="bg-slate-950/90 text-slate-400 text-[11px] uppercase tracking-wider border-b border-slate-800">
+              <thead className="bg-slate-50 text-slate-600 text-[11px] font-semibold uppercase tracking-wider border-b border-slate-200">
                 <tr>
                   <th className="py-2.5 px-4">Source File</th>
                   <th className="py-2.5 px-4">Target Module / Path</th>
@@ -177,23 +177,23 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
                   <th className="py-2.5 px-4">Imported Symbols</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-slate-100">
                 {data.items.map((item: DependencyItem) => (
                   <tr
                     key={item.id}
-                    className="hover:bg-slate-800/40 transition group"
+                    className="hover:bg-slate-50/80 transition group"
                   >
                     {/* Source File */}
                     <td className="py-2.5 px-4">
                       <div className="flex items-center space-x-1.5">
-                        <FileCode className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 transition shrink-0" />
+                        <FileCode className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition shrink-0" />
                         <span
-                          className="text-slate-200 font-medium truncate max-w-[240px]"
+                          className="text-slate-800 font-medium truncate max-w-[240px]"
                           title={item.source_file_path}
                         >
                           {item.source_file_path}
                         </span>
-                        <span className="text-slate-500 text-[10px]">
+                        <span className="text-slate-400 text-[10px]">
                           :{item.line_number}
                         </span>
                       </div>
@@ -202,14 +202,14 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
                     {/* Target Module */}
                     <td className="py-2.5 px-4">
                       <div className="flex items-center space-x-1.5">
-                        <ArrowRight className="w-3 h-3 text-slate-600 shrink-0" />
+                        <ArrowRight className="w-3 h-3 text-slate-400 shrink-0" />
                         <span
                           className={`truncate max-w-[260px] ${
                             item.resolution_status === "internal"
-                              ? "text-emerald-300 font-medium cursor-pointer hover:underline"
+                              ? "text-emerald-800 font-medium cursor-pointer hover:underline"
                               : item.resolution_status === "external"
-                              ? "text-sky-300"
-                              : "text-rose-300"
+                              ? "text-sky-800"
+                              : "text-rose-700"
                           }`}
                           title={item.target_file_path || item.target_module}
                           onClick={() => {
@@ -225,7 +225,7 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
 
                     {/* Type */}
                     <td className="py-2.5 px-3">
-                      <span className="text-slate-400 bg-slate-950 px-1.5 py-0.5 rounded border border-slate-800 text-[10px]">
+                      <span className="text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200 text-[10px]">
                         {item.dependency_type}
                       </span>
                     </td>
@@ -235,7 +235,7 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
                       <div className="flex items-center space-x-1">
                         {getStatusBadge(item.resolution_status)}
                         {item.is_type_only && (
-                          <span className="px-1 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
                             TS-TYPE
                           </span>
                         )}
@@ -249,7 +249,7 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
                           {item.imported_symbols.slice(0, 4).map((sym, idx) => (
                             <span
                               key={idx}
-                              className="text-[10px] bg-slate-950 text-slate-300 px-1.5 py-0.5 rounded border border-slate-800 truncate max-w-[100px]"
+                              className="text-[10px] bg-slate-50 text-slate-700 px-1.5 py-0.5 rounded border border-slate-200 truncate max-w-[100px]"
                               title={sym}
                             >
                               {sym}
@@ -262,7 +262,7 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
                           )}
                         </div>
                       ) : (
-                        <span className="text-slate-600 text-[11px]">&mdash;</span>
+                        <span className="text-slate-400 text-[11px]">&mdash;</span>
                       )}
                     </td>
                   </tr>
@@ -274,30 +274,30 @@ export const DependencyTable: React.FC<DependencyTableProps> = ({
 
         {/* Pagination Footer */}
         {data && data.total > limit && (
-          <div className="px-4 py-3 bg-slate-950/80 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+          <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
             <div>
               Showing {skip + 1} to {Math.min(skip + limit, data.total)} of{" "}
-              <span className="font-semibold text-slate-200">{data.total}</span> edges
+              <span className="font-semibold text-slate-900">{data.total}</span> edges
             </div>
             <div className="flex items-center space-x-2">
               <button
                 type="button"
                 disabled={skip === 0}
                 onClick={() => setSkip(Math.max(0, skip - limit))}
-                className="p-1 rounded bg-slate-900 border border-slate-700 disabled:opacity-30 hover:bg-slate-800 transition"
+                className="p-1 rounded bg-white border border-slate-300 disabled:opacity-40 hover:bg-slate-100 transition shadow-sm"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-4 h-4 text-slate-600" />
               </button>
-              <span className="font-mono text-slate-300">
+              <span className="font-mono text-slate-700 font-medium">
                 {currentPage} / {totalPages}
               </span>
               <button
                 type="button"
                 disabled={skip + limit >= data.total}
                 onClick={() => setSkip(skip + limit)}
-                className="p-1 rounded bg-slate-900 border border-slate-700 disabled:opacity-30 hover:bg-slate-800 transition"
+                className="p-1 rounded bg-white border border-slate-300 disabled:opacity-40 hover:bg-slate-100 transition shadow-sm"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-4 h-4 text-slate-600" />
               </button>
             </div>
           </div>
