@@ -103,7 +103,6 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
             job.stage = "file_discovery"
             job.progress = 30
             job.message = "Scanning workspace and detecting programming languages..."
-            await session.commit()
             publish_pipeline_event(analysis_id_str, "stage", {"status": job.status, "stage": job.stage, "progress": job.progress, "message": job.message})
 
             discovery_result = discover_files(cloned_repo.temp_dir)
@@ -116,7 +115,6 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
             job.stage = "parsing"
             job.progress = 45
             job.message = f"Initializing static parsers for {discovery_result.analyzable_files} source files..."
-            await session.commit()
             publish_pipeline_event(analysis_id_str, "stage", {"status": job.status, "stage": job.stage, "progress": job.progress, "message": job.message})
 
             # Stage 4: Symbol Extraction
@@ -124,7 +122,6 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
             job.stage = "extracting_symbols"
             job.progress = 60
             job.message = "Extracting AST symbols, functions, classes, imports, and exports..."
-            await session.commit()
             publish_pipeline_event(analysis_id_str, "stage", {"status": job.status, "stage": job.stage, "progress": job.progress, "message": job.message})
 
             parsed_files_data = []
@@ -135,6 +132,7 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
                 analyzer = analyzer_registry.get_analyzer_for_file(df.path, df.language)
                 file_full_path = os.path.join(cloned_repo.temp_dir, df.path)
                 file_content: Optional[str] = None
+                ast_tree: Any = None
 
                 if not df.is_analyzable or analyzer is None:
                     parser_status = "unsupported"
@@ -150,6 +148,7 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
                         parser_status = analysis_res.parser_status
                         parser_error = analysis_res.parser_error
                         file_symbols = analysis_res.symbols
+                        ast_tree = getattr(analysis_res, "ast_tree", None)
 
                     except Exception as parse_exc:
                         # Strict error isolation: single file error must never abort overall analysis
@@ -157,6 +156,7 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
                         parser_status = "failed"
                         parser_error = str(parse_exc)
                         file_symbols = []
+                        ast_tree = None
 
                 # Tally symbols
                 for sym in file_symbols:
@@ -170,7 +170,12 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
                     "parser_error": parser_error,
                     "symbol_count": len(file_symbols),
                     "symbols": file_symbols,
+                    "ast_tree": ast_tree,
                 })
+
+            # Milestone commit after symbol extraction
+            job.total_symbols = total_symbols_count
+            await session.commit()
 
             # Checkpoint 4: Before metrics calculation
             check_checkpoint(analysis_id_str, "calculating_metrics")
@@ -180,7 +185,6 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
             job.stage = "calculating_metrics"
             job.progress = 80
             job.message = "Calculating cyclomatic complexity, nesting depth, and quality metrics..."
-            await session.commit()
             publish_pipeline_event(analysis_id_str, "stage", {"status": job.status, "stage": job.stage, "progress": job.progress, "message": job.message})
 
             file_metrics_map: Dict[str, FileMetrics] = {}
@@ -201,7 +205,7 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
                     )
                 else:
                     try:
-                        fm = m_analyzer.calculate(df.path, content, file_symbols)
+                        fm = m_analyzer.calculate(df.path, content, file_symbols, ast_tree=item.get("ast_tree"))
                     except Exception as m_exc:
                         logger.warning("Failed to calculate metrics for %s: %s", df.path, m_exc)
                         fm = FileMetrics(
@@ -232,7 +236,6 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
             job.stage = "analyzing_dependencies"
             job.progress = 88
             job.message = "Analyzing dependencies, architecture coupling, and circular imports..."
-            await session.commit()
             publish_pipeline_event(analysis_id_str, "stage", {"status": job.status, "stage": job.stage, "progress": job.progress, "message": job.message})
 
             py_extractor = PythonDependencyExtractor()
@@ -256,14 +259,15 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
 
                 lang = (df.language or "").lower()
                 try:
+                    ast_tree = item.get("ast_tree")
                     if lang == "python":
-                        raw_deps = py_extractor.extract(df.path, content)
+                        raw_deps = py_extractor.extract(df.path, content, ast_tree=ast_tree)
                         for raw in raw_deps:
                             resolved = py_resolver.resolve(raw, source_file_id=fid)
                             all_resolved_dependencies.append(resolved)
                             graph.process_resolved_dependency(resolved)
                     elif lang in ("javascript", "typescript"):
-                        raw_deps = jsts_extractor.extract(df.path, content)
+                        raw_deps = jsts_extractor.extract(df.path, content, ast_tree=ast_tree)
                         for raw in raw_deps:
                             resolved = jsts_resolver.resolve(raw, source_file_id=fid)
                             all_resolved_dependencies.append(resolved)
@@ -283,7 +287,6 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
             job.stage = "analyzing_git_churn"
             job.progress = 85
             job.message = "Analyzing git commit churn, author distribution, and code change history..."
-            await session.commit()
             publish_pipeline_event(analysis_id_str, "stage", {"status": job.status, "stage": job.stage, "progress": job.progress, "message": job.message})
 
             churn_analyzer = GitChurnAnalyzer()
@@ -298,13 +301,12 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
             job.stage = "detecting_duplication"
             job.progress = 90
             job.message = "Detecting Type-1 and Type-2 code clones and computing duplication ratios..."
-            await session.commit()
             publish_pipeline_event(analysis_id_str, "stage", {"status": job.status, "stage": job.stage, "progress": job.progress, "message": job.message})
 
             files_content_map = {
                 item["df"].path: item["content"]
                 for item in parsed_files_data
-                if item.get("content") is not None
+                if item.get("content") is not None and item["df"].is_analyzable
             }
             total_sloc = sum(fm.sloc for fm in file_metrics_map.values())
             clone_detector = CloneDetector()
@@ -318,7 +320,6 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
             job.stage = "evaluating_health"
             job.progress = 94
             job.message = "Evaluating diagnostic rules, architectural anti-patterns, and health score..."
-            await session.commit()
             publish_pipeline_event(analysis_id_str, "stage", {"status": job.status, "stage": job.stage, "progress": job.progress, "message": job.message})
 
             rule_context = RuleContext(
@@ -369,6 +370,15 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
             job.quality_gate_status = qg_result.status
             job.quality_gate_details = qg_result.to_dict()
 
+            # Release raw content, AST trees, and clone detector data before heavy database persistence
+            for item in parsed_files_data:
+                item["content"] = None
+                item["ast_tree"] = None
+            files_content_map.clear()
+            del clone_detector
+            import gc
+            gc.collect()
+
             # Checkpoint 7: Before database persistence
             check_checkpoint(analysis_id_str, "persisting")
 
@@ -377,7 +387,6 @@ async def execute_ingestion_pipeline(analysis_id_str: str) -> None:
             job.stage = "persisting"
             job.progress = 97
             job.message = f"Persisting {len(parsed_files_data)} files, {total_symbols_count} symbols, metrics, dependencies, and health score..."
-            await session.commit()
             publish_pipeline_event(analysis_id_str, "stage", {"status": job.status, "stage": job.stage, "progress": job.progress, "message": job.message})
 
             files_to_insert: List[RepositoryFile] = []

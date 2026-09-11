@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import tree_sitter_javascript as tsjs
 import tree_sitter_typescript as tsts
@@ -44,19 +44,21 @@ class JsTsDependencyExtractor:
     def _get_line_number(node: Node, content_bytes: bytes) -> int:
         return content_bytes[:node.start_byte].count(b"\n") + 1
 
-    def extract(self, file_path: str, content: str) -> List[ExtractedDependency]:
+    def extract(self, file_path: str, content: str, ast_tree: Any = None) -> List[ExtractedDependency]:
         """Extracts ES imports, re-exports, require() calls, and dynamic imports."""
         if not content.strip():
             return []
 
-        parser = self._get_parser_for_path(file_path)
         content_bytes = content.encode("utf-8")
-
-        try:
-            tree = parser.parse(content_bytes)
-        except Exception as exc:
-            logger.warning("Tree-sitter parse error extracting dependencies from %s: %s", file_path, exc)
-            return []
+        if ast_tree is not None:
+            tree = ast_tree
+        else:
+            parser = self._get_parser_for_path(file_path)
+            try:
+                tree = parser.parse(content_bytes)
+            except Exception as exc:
+                logger.warning("Tree-sitter parse error extracting dependencies from %s: %s", file_path, exc)
+                return []
 
         dependencies: List[ExtractedDependency] = []
         self._traverse_node(tree.root_node, file_path, content_bytes, dependencies)

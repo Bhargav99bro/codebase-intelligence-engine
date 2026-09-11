@@ -28,6 +28,7 @@ class FileAnalysisResult:
     parser_status: str  # "parsed", "unsupported", "failed"
     parser_error: Optional[str] = None
     symbols: List[ExtractedSymbol] = field(default_factory=list)
+    ast_tree: Any = None
 
 
 class BaseLanguageAnalyzer(ABC):

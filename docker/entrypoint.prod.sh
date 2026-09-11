@@ -15,12 +15,12 @@ echo "[ENTRYPOINT] Applying Alembic database migrations..."
 alembic upgrade head
 echo "[ENTRYPOINT] Database migrations successfully applied."
 
-# 2. Start Celery worker in background for asynchronous ingestion
-echo "[ENTRYPOINT] Starting Celery worker (queue: ingestion, concurrency: 2)..."
+# 2. Start Celery worker in background for asynchronous ingestion (concurrency 1 for 512MB RAM)
+echo "[ENTRYPOINT] Starting Celery worker (queue: ingestion, concurrency: 1)..."
 celery -A app.workers.celery_app.celery_app worker \
     --loglevel=info \
     -Q ingestion \
-    --concurrency=2 &
+    --concurrency=1 &
 CELERY_PID=$!
 echo "[ENTRYPOINT] Celery worker started with PID ${CELERY_PID}."
 
@@ -44,13 +44,13 @@ trap cleanup SIGTERM SIGINT
 # 4. Configure trusted proxy IPs safely without globbing expansion
 export FORWARDED_ALLOW_IPS="${FORWARDED_ALLOW_IPS:-*}"
 
-# 5. Start Uvicorn ASGI server as the primary long-running web process
+# 5. Start Uvicorn ASGI server as the primary long-running web process (single worker for 512MB RAM)
 PORT_NUM=${PORT:-10000}
 echo "[ENTRYPOINT] Starting Uvicorn ASGI server on 0.0.0.0:${PORT_NUM}..."
 uvicorn app.main:app \
     --host 0.0.0.0 \
     --port "${PORT_NUM}" \
-    --workers 2 \
+    --workers 1 \
     --proxy-headers &
 UVICORN_PID=$!
 echo "[ENTRYPOINT] Uvicorn server started with PID ${UVICORN_PID}."

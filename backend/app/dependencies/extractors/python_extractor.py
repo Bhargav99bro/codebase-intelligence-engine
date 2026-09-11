@@ -1,6 +1,6 @@
 import ast
 import logging
-from typing import List
+from typing import Any, List
 
 from app.dependencies.base import DependencyType, ExtractedDependency
 
@@ -10,19 +10,22 @@ logger = logging.getLogger(__name__)
 class PythonDependencyExtractor:
     """Statically extracts dependency statements from Python source using standard AST."""
 
-    def extract(self, file_path: str, content: str) -> List[ExtractedDependency]:
+    def extract(self, file_path: str, content: str, ast_tree: Any = None) -> List[ExtractedDependency]:
         """Extracts imports and from-imports from Python code with line numbers and aliases."""
         if not content.strip():
             return []
 
-        try:
-            tree = ast.parse(content, filename=file_path)
-        except SyntaxError as exc:
-            logger.warning("Syntax error extracting dependencies from %s: %s", file_path, exc)
-            return []
-        except Exception as exc:
-            logger.warning("AST parse error extracting dependencies from %s: %s", file_path, exc)
-            return []
+        if ast_tree is not None:
+            tree = ast_tree
+        else:
+            try:
+                tree = ast.parse(content, filename=file_path)
+            except SyntaxError as exc:
+                logger.warning("Syntax error extracting dependencies from %s: %s", file_path, exc)
+                return []
+            except Exception as exc:
+                logger.warning("AST parse error extracting dependencies from %s: %s", file_path, exc)
+                return []
 
         dependencies: List[ExtractedDependency] = []
 

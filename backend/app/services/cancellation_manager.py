@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
+import time
 import uuid
 
 from fastapi import HTTPException
@@ -11,25 +12,47 @@ from app.models.analysis import AnalysisJob, AnalysisStatus
 
 logger = logging.getLogger(__name__)
 
+_redis_pool: Optional[redis.ConnectionPool] = None
+_last_redis_failure: float = 0.0
+
 
 class AnalysisCancelledException(Exception):
     """Raised when an analysis pipeline detects a cancellation request at a checkpoint."""
     pass
 
 
+def get_redis_pool() -> Optional[redis.ConnectionPool]:
+    global _redis_pool
+    if _redis_pool is None:
+        try:
+            _redis_pool = redis.ConnectionPool.from_url(
+                settings.REDIS_URL,
+                socket_connect_timeout=0.1,
+                socket_timeout=0.1,
+                retry_on_timeout=False,
+                decode_responses=True,
+                max_connections=5,
+            )
+        except Exception as e:
+            logger.debug("Failed to initialize Redis pool: %s", e)
+            return None
+    return _redis_pool
+
+
 def get_redis_client() -> Optional[redis.Redis]:
-    """Returns a connected Redis client if available."""
-    try:
-        return redis.from_url(
-            settings.REDIS_URL,
-            socket_connect_timeout=0.1,
-            socket_timeout=0.1,
-            retry_on_timeout=False,
-            decode_responses=True,
-        )
-    except Exception as e:
-        logger.warning("Could not connect to Redis for cancellation: %s", e)
+    """Returns a connected Redis client from pool if available."""
+    global _last_redis_failure
+    if time.time() - _last_redis_failure < 2.0:
         return None
+    pool = get_redis_pool()
+    if pool:
+        try:
+            return redis.Redis(connection_pool=pool)
+        except Exception as e:
+            _last_redis_failure = time.time()
+            logger.debug("Could not connect to Redis for cancellation: %s", e)
+            return None
+    return None
 
 
 def get_cancel_key(analysis_id: str) -> str:
@@ -42,13 +65,17 @@ def get_events_channel(analysis_id: str) -> str:
 
 def is_cancellation_requested(analysis_id: str, redis_client: Optional[redis.Redis] = None) -> bool:
     """Checks whether cancellation has been requested for this analysis."""
+    global _last_redis_failure
+    if time.time() - _last_redis_failure < 2.0 and redis_client is None:
+        return False
     r = redis_client or get_redis_client()
     if r:
         try:
             val = r.get(get_cancel_key(analysis_id))
             return val is not None
         except Exception as e:
-            logger.warning("Error checking Redis cancellation key: %s", e)
+            _last_redis_failure = time.time()
+            logger.debug("Error checking Redis cancellation key: %s", e)
     return False
 
 

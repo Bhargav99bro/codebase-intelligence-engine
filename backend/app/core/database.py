@@ -7,15 +7,20 @@ from app.models.base import Base
 
 logger = logging.getLogger(__name__)
 
-# Async SQLAlchemy Engine
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=settings.DEBUG,
-    future=True,
-    pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
-)
+# Async SQLAlchemy Engine - tuned for 512MB container memory constraints
+engine_kwargs = {
+    "echo": settings.DEBUG,
+    "future": True,
+    "pool_pre_ping": True,
+}
+if not settings.DATABASE_URL.startswith("sqlite"):
+    engine_kwargs.update({
+        "pool_size": 3,
+        "max_overflow": 5,
+        "pool_recycle": 300,
+    })
+
+engine = create_async_engine(settings.DATABASE_URL, **engine_kwargs)
 
 async_engine = engine
 

@@ -431,6 +431,15 @@ class CloneDetector:
         else:
             dup_ratio = 0.0
 
+        # Clean up internal token caches to free memory immediately
+        file_tokens.clear()
+        hash_index.clear()
+        seen_pairs.clear()
+        raw_matches.clear()
+        merged_matches.clear()
+        self._vocab.clear()
+        self._vocab_counter = 1
+
         return DuplicationResult(
             duplicates=retained,
             duplicate_blocks_count=len(retained),

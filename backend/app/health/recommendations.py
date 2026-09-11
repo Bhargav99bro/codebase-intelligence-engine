@@ -116,6 +116,17 @@ class RecommendationEngine:
         )
         candidates = candidate_list[:max_candidates]
 
+        # 2b. Precompute base public symbol documentation counts once (avoids 25x deepcopy of parsed_files_data)
+        base_total_public_symbols = 0
+        base_documented_public_symbols = 0
+        if parsed_files_data:
+            for item in parsed_files_data:
+                for sym in item.get("symbols", []):
+                    if sym.symbol_type in ("function", "class") and not sym.name.startswith("_"):
+                        base_total_public_symbols += 1
+                        if sym.metadata_json and sym.metadata_json.get("docstring"):
+                            base_documented_public_symbols += 1
+
         # 3. Simulate counterfactual metric improvement for each candidate target
         evaluated_candidates = []
 
@@ -125,9 +136,11 @@ class RecommendationEngine:
             cand_issues = cand["issues"]
             rule_ids = sorted(list(set(i.rule_id for i in cand_issues)))
 
-            simulated_metrics_map = {k: copy.deepcopy(v) for k, v in file_metrics_map.items()}
-            simulated_parsed_data = [copy.deepcopy(item) for item in parsed_files_data]
+            # Shallow copy the metrics map; only clone the single FileMetrics if modified
+            simulated_metrics_map = dict(file_metrics_map)
             simulated_issues = [i for i in issues if i not in cand_issues]
+            cand_total_pub = base_total_public_symbols
+            cand_doc_pub = base_documented_public_symbols
 
             is_qualitative = False
             has_metric_change = False
@@ -137,7 +150,8 @@ class RecommendationEngine:
                 fp = cand["file_path"]
                 sym_name = cand["symbol_name"]
                 if fp in simulated_metrics_map:
-                    fm = simulated_metrics_map[fp]
+                    fm = copy.deepcopy(file_metrics_map[fp])
+                    simulated_metrics_map[fp] = fm
                     for sm in fm.symbols_metrics:
                         if sm.name == sym_name:
                             # Modeled refactoring reduces CC to threshold (10) and nesting to 3
@@ -156,17 +170,9 @@ class RecommendationEngine:
                 has_metric_change = True
 
             # Model Maintainability Documentation Improvements
-            if any(r == "MAINT-003" for r in rule_ids) and cand.get("file_path") and cand.get("symbol_name"):
-                fp = cand["file_path"]
-                sym_name = cand["symbol_name"]
-                for item in simulated_parsed_data:
-                    if item["df"].path == fp:
-                        for s in item.get("symbols", []):
-                            if s.name == sym_name:
-                                if not s.metadata_json:
-                                    s.metadata_json = {}
-                                s.metadata_json["docstring"] = "Documented"
-                                has_metric_change = True
+            if any(r == "MAINT-003" for r in rule_ids):
+                cand_doc_pub = min(cand_total_pub, base_documented_public_symbols + 1)
+                has_metric_change = True
 
             # Model Hygiene, Security & Duplication Improvements
             if any(r.startswith("SEC-") or r.startswith("HYGIENE-") or r.startswith("ARCH-002") or r.startswith("ARCH-003") or r == "DUP-001" for r in rule_ids):
@@ -182,13 +188,14 @@ class RecommendationEngine:
                     dup_blocks = max(0, dup_blocks - dup_resolved_count)
 
                 simulated_health = self.calculator.compute(
-                    simulated_metrics_map,
-                    simulated_parsed_data,
-                    simulated_graph,
-                    simulated_issues,
+                    file_metrics_map=simulated_metrics_map,
+                    parsed_files_data=None,
+                    graph=simulated_graph,
+                    issues=simulated_issues,
                     duplication_ratio=dup_ratio,
                     duplicate_blocks_count=dup_blocks,
                     duplicate_lines_count=dup_lines,
+                    public_symbol_counts=(cand_total_pub, cand_doc_pub),
                 )
                 delta_s = round(max(0.0, simulated_health.overall_score - current_health.overall_score), 1)
             else:

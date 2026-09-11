@@ -35,5 +35,5 @@ services:
       - key: RATE_LIMIT_ENABLED
         value: true
       - key: MAX_CONCURRENT_ANALYSES
-        value: 5
+        value: 2
 

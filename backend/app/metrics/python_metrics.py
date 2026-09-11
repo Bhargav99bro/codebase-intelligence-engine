@@ -143,6 +143,7 @@ class PythonMetricsAnalyzer(BaseMetricsAnalyzer):
         file_path: str,
         content: str,
         symbols: List[ExtractedSymbol],
+        ast_tree: Any = None,
     ) -> FileMetrics:
         # 1. Line analysis
         lines = content.splitlines()
@@ -179,31 +180,34 @@ class PythonMetricsAnalyzer(BaseMetricsAnalyzer):
 
         sloc = max(0, total_lines - blank_lines - comment_lines)
 
-        # 2. Parse AST
-        try:
-            tree = ast.parse(content, filename=file_path)
-        except SyntaxError as syn_err:
-            return FileMetrics(
-                file_path=file_path,
-                language="Python",
-                total_lines=total_lines,
-                sloc=sloc,
-                comment_lines=comment_lines,
-                blank_lines=blank_lines,
-                metric_status="failed",
-                metric_error=f"Syntax error: {syn_err.msg} at line {syn_err.lineno}",
-            )
-        except Exception as exc:
-            return FileMetrics(
-                file_path=file_path,
-                language="Python",
-                total_lines=total_lines,
-                sloc=sloc,
-                comment_lines=comment_lines,
-                blank_lines=blank_lines,
-                metric_status="failed",
-                metric_error=str(exc),
-            )
+        # 2. Parse AST (reuse pre-parsed tree if provided)
+        if ast_tree is not None:
+            tree = ast_tree
+        else:
+            try:
+                tree = ast.parse(content, filename=file_path)
+            except SyntaxError as syn_err:
+                return FileMetrics(
+                    file_path=file_path,
+                    language="Python",
+                    total_lines=total_lines,
+                    sloc=sloc,
+                    comment_lines=comment_lines,
+                    blank_lines=blank_lines,
+                    metric_status="failed",
+                    metric_error=f"Syntax error: {syn_err.msg} at line {syn_err.lineno}",
+                )
+            except Exception as exc:
+                return FileMetrics(
+                    file_path=file_path,
+                    language="Python",
+                    total_lines=total_lines,
+                    sloc=sloc,
+                    comment_lines=comment_lines,
+                    blank_lines=blank_lines,
+                    metric_status="failed",
+                    metric_error=str(exc),
+                )
 
         # 3. Analyze all functions and methods
         func_nodes: List[Tuple[ast.AST, bool]] = []  # (node, is_method)

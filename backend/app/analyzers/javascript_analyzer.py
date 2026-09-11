@@ -87,6 +87,7 @@ class JavaScriptAnalyzer(BaseLanguageAnalyzer):
             language=self.language_name,
             parser_status="parsed",
             symbols=symbols,
+            ast_tree=tree,
         )
 
     def _get_text(self, node: Node, content: bytes) -> str:

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import math
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 import uuid
 
 from app.dependencies.graph import DirectedDependencyGraph
@@ -78,7 +78,8 @@ class HealthCalculator:
     @staticmethod
     def calculate_maintainability_score(
         file_metrics_map: Dict[str, FileMetrics],
-        parsed_files_data: List[Dict[str, Any]],
+        parsed_files_data: Optional[List[Dict[str, Any]]] = None,
+        public_symbol_counts: Optional[Tuple[int, int]] = None,
     ) -> float:
         analyzed_files = [fm for fm in file_metrics_map.values() if fm.total_lines > 0 or fm.sloc > 0]
         n_analyzed = len(analyzed_files)
@@ -91,17 +92,21 @@ class HealthCalculator:
         p_low_mi = low_mi_count / n_analyzed
 
         # Documentation ratio
-        total_public_symbols = 0
-        documented_public_symbols = 0
+        if public_symbol_counts is not None:
+            total_public_symbols, documented_public_symbols = public_symbol_counts
+        else:
+            total_public_symbols = 0
+            documented_public_symbols = 0
 
-        for item in parsed_files_data:
-            symbols = item.get("symbols", [])
-            for sym in symbols:
-                if sym.symbol_type in ("function", "class"):
-                    if not sym.name.startswith("_"):
-                        total_public_symbols += 1
-                        if sym.metadata_json and sym.metadata_json.get("docstring"):
-                            documented_public_symbols += 1
+            if parsed_files_data:
+                for item in parsed_files_data:
+                    symbols = item.get("symbols", [])
+                    for sym in symbols:
+                        if sym.symbol_type in ("function", "class"):
+                            if not sym.name.startswith("_"):
+                                total_public_symbols += 1
+                                if sym.metadata_json and sym.metadata_json.get("docstring"):
+                                    documented_public_symbols += 1
 
         r_doc = (documented_public_symbols / total_public_symbols) if total_public_symbols > 0 else 1.0
 
@@ -195,16 +200,19 @@ class HealthCalculator:
     def compute(
         self,
         file_metrics_map: Dict[str, FileMetrics],
-        parsed_files_data: List[Dict[str, Any]],
-        graph: DirectedDependencyGraph,
-        issues: List[CodebaseIssue],
+        parsed_files_data: Optional[List[Dict[str, Any]]] = None,
+        graph: Optional[DirectedDependencyGraph] = None,
+        issues: Optional[List[CodebaseIssue]] = None,
         duplication_ratio: float = 0.0,
         duplicate_blocks_count: int = 0,
         duplicate_lines_count: int = 0,
+        public_symbol_counts: Optional[Tuple[int, int]] = None,
     ) -> HealthScoreBreakdown:
+        if issues is None:
+            issues = []
         total_sloc = sum(fm.sloc for fm in file_metrics_map.values())
 
-        s_maint = self.calculate_maintainability_score(file_metrics_map, parsed_files_data)
+        s_maint = self.calculate_maintainability_score(file_metrics_map, parsed_files_data, public_symbol_counts=public_symbol_counts)
         s_complex = self.calculate_complexity_score(file_metrics_map)
         s_arch = self.calculate_architecture_score(graph, issues)
         s_hygiene = self.calculate_hygiene_score(issues, total_sloc)

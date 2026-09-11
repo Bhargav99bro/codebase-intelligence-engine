@@ -104,7 +104,9 @@ class Settings(BaseSettings):
     RATE_LIMIT_ALLOW_MEMORY_FALLBACK: bool = True
 
     # Resource Governance
-    MAX_CONCURRENT_ANALYSES: int = 5
+    MAX_CONCURRENT_ANALYSES: int = 2
+    CELERY_WORKER_CONCURRENCY: int = 1
+    UVICORN_WORKERS: int = 1
     MAX_CLONE_PAIRS_CAP: int = 10000
     MAX_CANDIDATE_BUCKET_SIZE: int = 100
     STALE_JOB_THRESHOLD_MINUTES: int = 30

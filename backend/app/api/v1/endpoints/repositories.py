@@ -1,6 +1,6 @@
 import logging
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -39,6 +39,32 @@ async def submit_repository_for_analysis(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(exc),
+        )
+
+    # 1b. Enforce active concurrent analyses admission limit to prevent OOM
+    active_statuses = [
+        AnalysisStatus.QUEUED.value,
+        AnalysisStatus.CLONING.value,
+        AnalysisStatus.DISCOVERING.value,
+        AnalysisStatus.PARSING.value,
+        AnalysisStatus.EXTRACTING_SYMBOLS.value,
+        AnalysisStatus.CALCULATING_METRICS.value,
+        AnalysisStatus.ANALYZING_DEPENDENCIES.value,
+        AnalysisStatus.ANALYZING_GIT_CHURN.value,
+        AnalysisStatus.DETECTING_DUPLICATION.value,
+        AnalysisStatus.EVALUATING_HEALTH.value,
+        AnalysisStatus.PERSISTING.value,
+    ]
+    active_jobs_stmt = select(func.count(AnalysisJob.id)).where(AnalysisJob.status.in_(active_statuses))
+    active_jobs_count = (await db.execute(active_jobs_stmt)).scalar() or 0
+    if active_jobs_count >= settings.MAX_CONCURRENT_ANALYSES:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail=(
+                f"Maximum concurrent analysis capacity reached ({settings.MAX_CONCURRENT_ANALYSES}). "
+                "Please wait for ongoing analyses to complete before submitting new repositories."
+            ),
+            headers={"Retry-After": "30"},
         )
 
     # 2. Get or create Repository entity

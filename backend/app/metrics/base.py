@@ -86,6 +86,7 @@ class BaseMetricsAnalyzer(ABC):
         file_path: str,
         content: str,
         symbols: List[ExtractedSymbol],
+        ast_tree: Any = None,
     ) -> FileMetrics:
         """Calculates complexity, nesting depth, and quality metrics for a single source file."""
         pass

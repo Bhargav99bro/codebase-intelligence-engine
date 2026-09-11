@@ -70,6 +70,7 @@ class TypeScriptAnalyzer(JavaScriptAnalyzer):
             language=self.language_name,
             parser_status="parsed",
             symbols=symbols,
+            ast_tree=tree,
         )
 
     def _traverse_node(

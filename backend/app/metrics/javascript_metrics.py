@@ -47,6 +47,7 @@ class JavaScriptMetricsAnalyzer(BaseMetricsAnalyzer):
         file_path: str,
         content: str,
         symbols: List[ExtractedSymbol],
+        ast_tree: Any = None,
     ) -> FileMetrics:
         # 1. Line analysis
         lines = content.splitlines()
@@ -80,20 +81,23 @@ class JavaScriptMetricsAnalyzer(BaseMetricsAnalyzer):
         sloc = max(0, total_lines - blank_lines - comment_lines)
         content_bytes = content.encode("utf-8")
 
-        # 2. Parse Tree-sitter CST
-        try:
-            tree = self._parser.parse(content_bytes)
-        except Exception as exc:
-            return FileMetrics(
-                file_path=file_path,
-                language=self.language_name,
-                total_lines=total_lines,
-                sloc=sloc,
-                comment_lines=comment_lines,
-                blank_lines=blank_lines,
-                metric_status="failed",
-                metric_error=str(exc),
-            )
+        # 2. Parse Tree-sitter CST (reuse pre-parsed tree if provided)
+        if ast_tree is not None:
+            tree = ast_tree
+        else:
+            try:
+                tree = self._parser.parse(content_bytes)
+            except Exception as exc:
+                return FileMetrics(
+                    file_path=file_path,
+                    language=self.language_name,
+                    total_lines=total_lines,
+                    sloc=sloc,
+                    comment_lines=comment_lines,
+                    blank_lines=blank_lines,
+                    metric_status="failed",
+                    metric_error=str(exc),
+                )
 
         root = tree.root_node
         if root.has_error:

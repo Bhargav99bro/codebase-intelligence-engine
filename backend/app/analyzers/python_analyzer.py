@@ -73,6 +73,7 @@ class PythonAnalyzer(BaseLanguageAnalyzer):
             language=self.language_name,
             parser_status="parsed",
             symbols=symbols,
+            ast_tree=tree_ast,
         )
 
     def _extract_symbols_from_ast(

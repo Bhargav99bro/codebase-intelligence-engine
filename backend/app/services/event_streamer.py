@@ -19,6 +19,27 @@ def format_sse(event_type: str, data: Any) -> str:
     return f"event: {event_type}\ndata: {payload}\n\n"
 
 
+_event_redis_pool: Optional[Any] = None
+
+
+def get_event_redis_pool():
+    global _event_redis_pool
+    if _event_redis_pool is None:
+        try:
+            import redis
+            _event_redis_pool = redis.ConnectionPool.from_url(
+                settings.REDIS_URL,
+                socket_connect_timeout=0.2,
+                socket_timeout=0.2,
+                retry_on_timeout=False,
+                decode_responses=True,
+                max_connections=5,
+            )
+        except Exception:
+            return None
+    return _event_redis_pool
+
+
 def publish_pipeline_event(
     analysis_id: str,
     event_type: str,
@@ -27,13 +48,10 @@ def publish_pipeline_event(
     """Synchronously publishes a pipeline event to the Redis channel for active SSE subscribers."""
     try:
         import redis
-        r = redis.from_url(
-            settings.REDIS_URL,
-            socket_connect_timeout=0.1,
-            socket_timeout=0.1,
-            retry_on_timeout=False,
-            decode_responses=True,
-        )
+        pool = get_event_redis_pool()
+        if not pool:
+            return
+        r = redis.Redis(connection_pool=pool)
         channel = get_events_channel(analysis_id)
         msg = json.dumps({"event": event_type, "data": data})
         r.publish(channel, msg)
